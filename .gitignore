@@ -51,3 +51,4 @@ lib/uplink/starbase/disk
 !Jenkinsfile
 !CHANGELOG
 .history
+app_build

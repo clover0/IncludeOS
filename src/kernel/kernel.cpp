@@ -118,6 +118,7 @@ void kernel::post_start()
          os::version(), os::arch(),
          static_cast<unsigned>(sizeof(uintptr_t)) * 8);
   printf(" +--> Running [ %s ]\n", Service::name());
+  printf("with editable!\n");
   FILLINE('~');
 
   // if we have disabled important checks, its unsafe for production
