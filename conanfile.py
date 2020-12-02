@@ -30,7 +30,8 @@ class IncludeOSConan(ConanFile):
     }
 
     default_options = {
-        'platform':'default',
+        # 'platform':'default',
+        'platform':'nano',
         'smp': False
     }
 

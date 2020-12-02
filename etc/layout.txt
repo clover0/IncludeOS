@@ -1,4 +1,4 @@
-{% set simple=true%}
+{% set simple=false%}
 
 {% set build_dir='build' %}
 
