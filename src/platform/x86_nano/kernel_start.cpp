@@ -48,6 +48,7 @@ void kernel_start(uintptr_t magic, uintptr_t addr)
   if (os_default_stdout)
     os::add_stdout(&kernel::default_stdout);
 
+  printf("hello nano before kernel::start\n");
   kernel::start(magic, addr);
 
   // Start the service

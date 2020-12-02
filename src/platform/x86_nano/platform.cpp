@@ -26,6 +26,7 @@ static void platform_init()
 {
   // setup CPU exception handlers
   x86::idt_initialize_for_cpu(0);
+  printf("hello nano\n");
 }
 
 void kernel::start(uint32_t boot_magic, uint32_t boot_addr)
@@ -60,15 +61,21 @@ void __arch_disable_legacy_irq(unsigned char){}
 
 void SMP::global_lock() noexcept {}
 void SMP::global_unlock() noexcept {}
-int SMP::cpu_id() noexcept { return 0; }
+// int SMP::cpu_id() noexcept { return 0; }
 int SMP::cpu_count() noexcept { return 1; }
+size_t SMP::early_cpu_total() noexcept {
+	return 0;
+}
 
 void os::halt() noexcept {
   asm("hlt");
+  asm volatile(
+  ".global _irq_cb_return_location;\n"
+  "_irq_cb_return_location:" );
 }
 
 // default stdout/logging states
 __attribute__((weak))
 bool os_enable_boot_logging = false;
 __attribute__((weak))
-bool os_default_stdout = false;
+bool os_default_stdout = true;
