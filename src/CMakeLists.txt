@@ -42,6 +42,11 @@ if(${PLATFORM} STREQUAL "solo5-hvt")
   add_definitions(-DPLATFORM_x86_solo5)
 endif()
 
+if(${PLATFORM} STREQUAL "bitvisor")
+  message(STATUS "Building for bitvisor")
+  add_definitions(-DPLATFORM_x86_bitvisor)
+endif()
+
 SET(OBJECTS)
 #TODO make the subdirectory add return an LIST of target objects..
 #needed to make multilevel dep work for eg.. net.

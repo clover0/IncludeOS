@@ -79,11 +79,13 @@ namespace os::detail {
     memory().deallocate(main_mem.ptr, main_mem.size);
 
 #ifndef PLATFORM_x86_solo5
+#ifndef PLATFORM_x86_bitvisor
     static const size_t SYSTEMLOG_SIZE = 65536;
     const size_t LIU_SIZE = os::liveupdate_memory_size_mb * 1024 * 1024;
     auto liu_mem = memory().allocate_back(LIU_SIZE + SYSTEMLOG_SIZE);
     kernel::state().liveupdate_phys = (uintptr_t) liu_mem.ptr + SYSTEMLOG_SIZE;
     kernel::state().liveupdate_size = liu_mem.size - SYSTEMLOG_SIZE;
+#endif
 #endif
 
     // reallocate main memory from remainder

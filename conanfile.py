@@ -24,6 +24,7 @@ class IncludeOSConan(ConanFile):
             'nano',
             'solo5-hvt',
             'solo5-spt',
+            'bitvisor',
             'userspace'
         ],
         'smp': [ True, False ]
@@ -31,7 +32,7 @@ class IncludeOSConan(ConanFile):
 
     default_options = {
         # 'platform':'default',
-        'platform':'nano',
+        'platform':'bitvisor',
         'smp': False
     }
 
@@ -106,6 +107,7 @@ class IncludeOSConan(ConanFile):
             'nano' : '{}_nano'.format(self._target_arch()),
             'solo5-hvt' : '{}_solo5-hvt'.format(self._target_arch()),
             'solo5-spt' : '{}_solo5-spt'.format(self._target_arch()),
+            'bitvisor': '{}_bitvisor'.format(self._target_arch()),
             'userspace' : '{}_userspace'.format(self._target_arch())
         }
 

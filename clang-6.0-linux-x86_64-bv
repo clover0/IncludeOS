@@ -11,7 +11,7 @@ compiler.libcxx=libc++
 cppstd=17
 build_type=Release
 [options]
-platform=nano
+platform=bitvisor
 [env]
 CC=clang-6.0
 CXX=clang++-6.0
