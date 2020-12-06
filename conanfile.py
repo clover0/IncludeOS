@@ -31,8 +31,8 @@ class IncludeOSConan(ConanFile):
     }
 
     default_options = {
-        # 'platform':'default',
-        'platform':'bitvisor',
+        'platform':'default', 
+        # 'platform':'bitvisor',
         'smp': False
     }
 
