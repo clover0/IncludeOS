@@ -4,7 +4,8 @@
 #include <info>
 
 // extern "C" {
-// #include <bitvisor/bitvisor.h>
+// これどうにかしたい
+#include "../../../bitvisor/bitvisor.hpp"
 // }
 
 // extern "C" {
@@ -27,8 +28,11 @@ uint32_t __multiboot_addr = 0;
 extern "C" void pre_initialize_tls();
 
 extern "C"
-int bitvisor_app_main(const struct bitvisor_start_info *si)
+// int bitvisor_app_main(const struct bitvisor_start_info *si)
+int bv_main_start()
+// void _start(const void *arg)
 {
+  bv_nop();
   // si is stored at 0x6000 by bitvisor tender which is used by includeos. Move it fast.
   // strncpy(temp_cmdline, si->cmdline, sizeof(temp_cmdline)-1);
   // temp_cmdline[sizeof(temp_cmdline)-1] = 0;
@@ -36,6 +40,7 @@ int bitvisor_app_main(const struct bitvisor_start_info *si)
   // mem_size = si->heap_size;
 
   // pre_initialize_tls();
+  // kernel_start();
   return 0;
 }
 

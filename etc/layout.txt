@@ -22,6 +22,7 @@ build/plugins
 build/drivers
 build/lib
 build/platform
+build/bitvisor
 
 [resdirs]
 {#This is so that we can find ldscript and search for drivers plugins etc#}

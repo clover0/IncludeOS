@@ -113,7 +113,8 @@ class IncludeOSConan(ConanFile):
 
         self.cpp_info.libs=['os','arch','musl_syscalls']
         self.cpp_info.libs.append(platform.get(str(self.options.platform),"NONE"))
-        self.cpp_info.libdirs = [ 'lib', 'platform' ]
+        self.cpp_info.libs.append('{}_bv_binding'.format(self._target_arch()))
+        self.cpp_info.libdirs = [ 'lib', 'platform', 'bitvisor']
 
     def deploy(self):
         self.copy("*",dst="cmake",src="cmake")

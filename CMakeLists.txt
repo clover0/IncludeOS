@@ -58,6 +58,7 @@ endif()
 include(cmake/includeos.cmake)
 
 add_subdirectory(src)
+add_subdirectory(bitvisor)
 
 # Install cmake files
 install(FILES cmake/linux.service.cmake DESTINATION cmake)
