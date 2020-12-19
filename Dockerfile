@@ -7,6 +7,7 @@ RUN apt-get update && \
     cmake \
     nasm \
     curl \
+    gdb \
     git && \
     rm -rf /var/lib/apt/lists/*
 

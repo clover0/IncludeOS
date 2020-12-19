@@ -11,9 +11,9 @@ compiler.libcxx=libc++
 cppstd=17
 build_type=Release
 [options]
-platform=bitvisor
+
 [env]
 CC=clang-6.0
 CXX=clang++-6.0
-CFLAGS=-msse3 -mfpmath=sse -O2 -g
-CXXFLAGS=-msse3 -mfpmath=sse -O2 -g
+CFLAGS=-msse3 -mfpmath=sse -O2 -g -fno-stack-protector
+CXXFLAGS=-msse3 -mfpmath=sse -O2 -g -fno-stack-protector

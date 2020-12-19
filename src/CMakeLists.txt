@@ -1,7 +1,7 @@
 #
 # CMake script for the OS library
 #
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector")
 #TODO restructure this in a different commit based on KJ/CMakeFixes branch
 add_definitions(-DARCH_${ARCH})
 add_definitions(-DARCH="${ARCH}")

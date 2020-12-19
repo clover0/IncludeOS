@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.6.0)
 
 #we are only creating libraries for ELF
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector")
 
 project (includeos C CXX)
 

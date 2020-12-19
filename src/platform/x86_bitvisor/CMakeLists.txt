@@ -1,4 +1,5 @@
 add_definitions(-DPLATFORM_x86_bitvisor)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector")
 
 set(PLATFORM_OBJECTS
   os.cpp
