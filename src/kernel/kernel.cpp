@@ -73,53 +73,54 @@ void os::shutdown() noexcept
 void kernel::post_start()
 {
   // Enable timestamps (if present)
+  printf("kernel:: post start");
   kernel::state().timestamps_ready = true;
 
   {
 	PROFILE("LiveUpdate and SystemLog");
     // LiveUpdate needs some initialization, although only if present
-    kernel::setup_liveupdate();
+    // kernel::setup_liveupdate();
 
     // Initialize the system log if plugin is present.
     // Dependent on the liveupdate location being set
-    SystemLog::initialize();
+    // SystemLog::initialize();
   }
 
   // Seed rand with 32 bits from RNG
-  srand(rng_extract_uint32());
+  // srand(rng_extract_uint32());
 
   // Custom initialization functions
   MYINFO("Initializing plugins");
   {
 	PROFILE("Plugin constructors");
-    kernel::run_ctors(&__plugin_ctors_start, &__plugin_ctors_end);
+    // kernel::run_ctors(&__plugin_ctors_start, &__plugin_ctors_end);
 
     // Run plugins
-    for (auto plugin : plugins) {
-      INFO2("* Initializing %s", plugin.name);
-      plugin.func();
-    }
+    // for (auto plugin : plugins) {
+      // INFO2("* Initializing %s", plugin.name);
+      // plugin.func();
+    // }
   }
 
   MYINFO("Running service constructors");
-  FILLINE('-');
+  // FILLINE('-');
   {
 	PROFILE("Service constructors");
     // the boot sequence is over when we get to plugins/Service::start
     kernel::state().boot_sequence_passed = true;
 
     // Run service constructors
-    kernel::run_ctors(&__service_ctors_start, &__service_ctors_end);
+    // kernel::run_ctors(&__service_ctors_start, &__service_ctors_end);
   }
 
   // begin service start
-  FILLINE('=');
+  // FILLINE('=');
   printf(" IncludeOS %s (%s / %u-bit)\n",
          os::version(), os::arch(),
          static_cast<unsigned>(sizeof(uintptr_t)) * 8);
   printf(" +--> Running [ %s ]\n", Service::name());
   printf("with editable!\n");
-  FILLINE('~');
+  // FILLINE('~');
 
   // if we have disabled important checks, its unsafe for production
 #if defined(LIBFUZZER_ENABLED) || defined(ARP_PASSTHROUGH) || defined(DISABLE_INET_CHECKSUMS)
@@ -143,6 +144,7 @@ void kernel::post_start()
   // service program start
   {
 	PROFILE("Service::start");
+  printf("service start\n");
     Service::start();
   }
 }

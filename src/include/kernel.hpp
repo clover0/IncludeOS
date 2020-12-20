@@ -109,6 +109,7 @@ namespace kernel {
   void start(uint32_t boot_magic, uint32_t boot_addr);
   void start(uint64_t fdt);
   void start(const char* cmdline);
+  void start();
 
   /** Initialize common subsystems, call Service::start */
   void post_start();

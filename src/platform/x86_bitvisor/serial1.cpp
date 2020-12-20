@@ -1,21 +1,19 @@
 #include <cstring>
 #include <cstdarg>
 #include <cstdio>
+#include "../../../bitvisor/bitvisor.hpp"
 
 extern "C" {
-// #include <bitvisor/bitvisor.h>
 
 void __init_serial1() {}
 
 void __serial_print1(const char* cstr)
 {
-  // bitvisor_console_write(cstr, strlen(cstr));
-    printf("%s\n", cstr);
+  bv_console_write(cstr, strlen(cstr));
 }
 void __serial_print(const char* str, size_t len)
 {
-  // bitvisor_console_write(str, len);
-  printf("%s\n",str);
+  bv_console_write(str, len);
 }
 
 void kprint(const char* c){
@@ -31,6 +29,5 @@ void kprintf(const char* format, ...)
   __serial_print1(buf);
   va_end(aptr);
 }
-
 
 }
