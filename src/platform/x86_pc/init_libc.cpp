@@ -60,7 +60,7 @@ int kernel_main(int, char * *, char * *)
   //kernel::start((const char*) (uintptr_t) grub_magic);
   kernel::start("Testing");
 #elif defined(PLATFORM_x86_bitvisor)
-  kernel::start("Testing");
+  kernel::start();
 #else
   LL_ASSERT(0 && "Implement call to kernel start for this platform");
 #endif

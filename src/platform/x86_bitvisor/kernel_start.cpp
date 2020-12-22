@@ -2,6 +2,7 @@
 #include <info>
 #include <kernel.hpp>
 #include <kprint>
+#include <vector>
 
 // extern "C" {
 // これどうにかしたい
@@ -9,7 +10,7 @@
 // }
 
 extern "C" {
-//   void __init_sanity_checks();
+void __init_sanity_checks();
 uintptr_t _move_symbols(uintptr_t loc);
 void _init_syscalls();
 void _init_elf_parser();
@@ -25,43 +26,63 @@ os::Machine &os::machine() noexcept {
   return *__machine;
 }
 
-// static char temp_cmdline[1024];
+static char temp_cmdline[1024];
 static uintptr_t mem_size = 0;
 static uintptr_t free_mem_begin;
+// アドレス受け渡しがうまくいかないため配列としておく
+struct alignas(4096) page_t {
+  char buffer[4096];
+};
+static std::array<page_t, 1024> machine_pool;
 uint32_t __multiboot_addr = 0;
 // extern "C" void pre_initialize_tls();
 extern int ttyout;
 
+static std::vector<int> v;
+
+int ctnr_num = 0; // TODO: for debug
+
 // extern "C"
 void kernel_start(const struct bv_start_info *si) {
   bv_nop(); //2
-  // free_mem_begin = si->heap_start;
-  free_mem_begin = 1;
+  free_mem_begin = si->heap_start;
   mem_size = si->heap_size;
 
+  // __init_sanity_checks();
+  printf("init sanity checks\n");
+
   // printf("kernel_start: heap >= 0x%llx < stack < 0x%llx\n",
-        //  (unsigned long long)free_mem_begin, (unsigned long long)mem_size);
+  //  (unsigned long long)free_mem_begin, (unsigned long long)mem_size);
 
   // Preserve symbols from the ELF binary
   // const size_t len = _move_symbols(free_mem_begin);
+  // const size_t len = _move_symbols(machine_pool.data());
   // free_mem_begin += len;
   // mem_size -= len;
+  // printf("move symbols\n");
 
   // Ze machine
   // __machine = os::Machine::create((void*)free_mem_begin, mem_size);
+  __machine = os::Machine::create(machine_pool.data(), sizeof(machine_pool));
+  printf("machine create\n");
 
-  printf("machine\n");
+  _init_elf_parser();
   // _init_elf_parser();
-  // _init_elf_parser();
-  printf("perser %d\n", 1);
+  printf("parser %d\n", 1);
 
   // Begin portable HAL initialization
-  // __machine->init();
+  // initはいらない？
+  __machine->init();
   printf("init\n");
 
+  // error PFE
+  // v.push_back(1);
+  // printf("vector \n");
   // Initialize system calls
-  // _init_syscalls();
+  _init_syscalls();
   printf("init syscall\n");
+
+  // x86::init_libc((uint32_t)(uintptr_t)temp_cmdline, 0);
 
   kernel::start(); // 本来は大分あと
   printf("start kernel\n");
@@ -70,8 +91,8 @@ void kernel_start(const struct bv_start_info *si) {
   // generate checksums of read-only areas etc.
   // __init_sanity_checks();
   kernel::post_start();
-  printf("kernel post start");
-
+  // printf("kernel post start");
+  os::event_loop();
   // x86::init_libc((uint32_t) (uintptr_t) temp_cmdline, 0);
 }
 
@@ -100,14 +121,17 @@ extern "C" int bv_main_start() {
 
   // setup heap
   heap_start = bv_msgsendint(ukld, 4); // 4 is get heap address
+  ctnr_num = (int)(heap_start / 100);
+  printf("container %d start\n", ctnr_num);
 
   si.heap_start = heap_start;
-  si.heap_size = _mem_size - heap_start;
+  // si.heap_size = _mem_size - heap_start;
+  printf("includeos heap: %llx\n", heap_start);
+  // *((int *)si.heap_start) = 0x1030; //4k
 
-  // これはエラー
-  printf("heap start: 0x%llx \n", (unsigned long long)heap_start);
+  printf("heap start: 0x%llx \n", (unsigned long long)si.heap_start);
 
-  // printf("_end: 0x%llx \n", (unsigned long long)_end);
+  printf("_end: 0x%llx \n", (unsigned long long)_end);
   // printf("heap >= 0x%llx < stack < 0x%llx\n",
   //  (unsigned long long)si.heap_start, (unsigned long long)si.heap_size);
 

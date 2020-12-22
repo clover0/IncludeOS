@@ -31,6 +31,9 @@ extern kernel::ctor_t __init_array_end;
 extern kernel::ctor_t __driver_ctors_start;
 extern kernel::ctor_t __driver_ctors_end;
 
+extern int ctnr_num;
+static unsigned long long count = 0;
+
 #define MYINFO(X,...) INFO("Kernel", X, ##__VA_ARGS__)
 
 #ifdef ENABLE_PROFILERS
@@ -128,38 +131,43 @@ void kernel::start()
 
 static inline void event_loop_inner()
 {
-  int res = 0;
-  auto nxt = Timers::next();
-  if (nxt == std::chrono::nanoseconds(0))
-  {
-    // no next timer, wait forever
-    //printf("Waiting 15s, next is indeterminate...\n");
-    const unsigned long long count = 15000000000ULL;
-    // res = bitvisor_yield(bitvisor_clock_monotonic() + count);
-    os_cycles_hlt += count;
-  }
-  else if (nxt == std::chrono::nanoseconds(1))
-  {
-    // there is an imminent or activated timer, don't wait
-    //printf("Not waiting, imminent timer...\n");
-  }
-  else
-  {
-    //printf("Waiting %llu nanos\n", nxt.count());
-    // res = bitvisor_yield(bitvisor_clock_monotonic() + nxt.count());
-    os_cycles_hlt += nxt.count();
-  }
+  // int res = 0;
+  // auto nxt = Timers::next();
+  // if (nxt == std::chrono::nanoseconds(0))
+  // {
+  //   // no next timer, wait forever
+  //   //printf("Waiting 15s, next is indeterminate...\n");
+  //   const unsigned long long count = 15000000000ULL;
+  //   // res = bitvisor_yield(bitvisor_clock_monotonic() + count);
+  //   os_cycles_hlt += count;
+  // }
+  // else if (nxt == std::chrono::nanoseconds(1))
+  // {
+  //   // there is an imminent or activated timer, don't wait
+  //   //printf("Not waiting, imminent timer...\n");
+  // }
+  // else
+  // {
+  //   //printf("Waiting %llu nanos\n", nxt.count());
+  //   // res = bitvisor_yield(bitvisor_clock_monotonic() + nxt.count());
+  //   os_cycles_hlt += nxt.count();
+  // }
 
-  // handle any activated timers
-  Timers::timers_handler();
-  Events::get().process_events();
-  if (res != 0)
-  {
-    // handle any network traffic
-    for (auto& nic : os::machine().get<hw::Nic>()) {
-      nic.get().poll();
-    }
-  }
+  // // handle any activated timers
+  // // Timers::timers_handler();
+  // // Events::get().process_events();
+  // if (res != 0)
+  // {
+  //   // handle any network 
+  //   // for (auto& nic : os::machine().get<hw::Nic>()) {
+  //   //   nic.get().poll();
+  //   // }
+  // }
+  // if (count % 100000000 == 0) {
+  //   printf("%d,", ctnr_num);
+  //   count = 0;
+  // }
+  bv_yield();
 }
 
 void os::event_loop()
@@ -168,9 +176,9 @@ void os::event_loop()
   {
     // add a global symbol here so we can quickly discard
     // event loop from stack sampling
-    asm volatile(
-    ".global _irq_cb_return_location;\n"
-    "_irq_cb_return_location:" );
+    // iasm volatile(
+    // ".global _irq_cb_return_location;\n"
+    // "_irq_cb_return_location:" );
 
     event_loop_inner();
   }
