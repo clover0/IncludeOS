@@ -37,10 +37,10 @@ static std::array<page_t, 1024> machine_pool;
 uint32_t __multiboot_addr = 0;
 // extern "C" void pre_initialize_tls();
 extern int ttyout;
+extern int ctnr_num;
 
 static std::vector<int> v;
 
-int ctnr_num = 0; // TODO: for debug
 
 // extern "C"
 void kernel_start(const struct bv_start_info *si) {
@@ -102,7 +102,7 @@ extern "C" int bv_main_start() {
   // uint64_t _mem_size = 0x0100000 * 5;
   uint64_t _mem_size = 0x0100000;
   static uint64_t heap_start;
-  int ukld;
+  int ukld, num;
 
   // heap_start = ((uint64_t)&_end + PAGE_SIZE - 1) & PAGE_MASK;
 
@@ -120,9 +120,10 @@ extern "C" int bv_main_start() {
   }
 
   // setup heap
-  heap_start = bv_msgsendint(ukld, 4); // 4 is get heap address
-  ctnr_num = (int)(heap_start / 100);
-  printf("container %d start\n", ctnr_num);
+  heap_start = bv_msgsendint(ukld, 4); // 4 is to get heap address
+  num = bv_msgsendint(ukld, 5); // 5 is to get container id
+  printf("container %d start\n", num);
+  ctnr_num = num;
 
   si.heap_start = heap_start;
   // si.heap_size = _mem_size - heap_start;

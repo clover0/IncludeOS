@@ -31,7 +31,7 @@ extern kernel::ctor_t __init_array_end;
 extern kernel::ctor_t __driver_ctors_start;
 extern kernel::ctor_t __driver_ctors_end;
 
-extern int ctnr_num;
+int ctnr_num = -1;
 static unsigned long long count = 0;
 
 #define MYINFO(X,...) INFO("Kernel", X, ##__VA_ARGS__)
@@ -158,15 +158,15 @@ static inline void event_loop_inner()
   // // Events::get().process_events();
   // if (res != 0)
   // {
-  //   // handle any network 
+  //   // handle any network
   //   // for (auto& nic : os::machine().get<hw::Nic>()) {
   //   //   nic.get().poll();
   //   // }
   // }
-  // if (count % 100000000 == 0) {
-  //   printf("%d,", ctnr_num);
-  //   count = 0;
-  // }
+  if (count == 400000) {
+    // printf("-- %d --\n", ctnr_num);
+  }
+  count++;
   bv_yield();
 }
 
