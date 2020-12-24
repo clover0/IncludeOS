@@ -6,6 +6,8 @@
 #include <kprint>
 #include <errno.h>
 
+#include "../../../bitvisor/bitvisor.hpp"
+
 extern "C" {
   long syscall_SYS_set_thread_area(void* u_info);
   void __clone_return(void* stack);
@@ -127,7 +129,7 @@ long syscall_SYS_set_thread_area(void* u_info)
 #	ifdef PLATFORM_x86_solo5
 		solo5_set_tls_base((uintptr_t) u_info);
 #	elif PLATFORM_x86_bitvisor
-    printf("skip tls base\n");
+    bv_set_tls_base((uintptr_t) u_info);
 # else
   		x86::CPU::set_fs(u_info);
 #	endif

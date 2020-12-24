@@ -22,6 +22,8 @@ int bv_msgsendint(int desc, int data);
 
 void bv_console_write(const char *buf, unsigned long size);
 
+int bv_set_tls_base(uintptr_t base);
+
 struct bv_start_info {
     const char *cmdline;
     uintptr_t heap_start;

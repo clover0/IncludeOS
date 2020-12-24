@@ -67,33 +67,20 @@ void kernel_start(const struct bv_start_info *si) {
   printf("machine create\n");
 
   _init_elf_parser();
-  // _init_elf_parser();
-  printf("parser %d\n", 1);
 
   // Begin portable HAL initialization
-  // initはいらない？
   __machine->init();
-  printf("init\n");
 
   // error PFE
   // v.push_back(1);
   // printf("vector \n");
+
   // Initialize system calls
   _init_syscalls();
+
   printf("init syscall\n");
 
-  // x86::init_libc((uint32_t)(uintptr_t)temp_cmdline, 0);
-
-  kernel::start(); // 本来は大分あと
-  printf("start kernel\n");
-
-  // printf("hello unikernle!\n");
-  // generate checksums of read-only areas etc.
-  // __init_sanity_checks();
-  kernel::post_start();
-  // printf("kernel post start");
-  os::event_loop();
-  // x86::init_libc((uint32_t) (uintptr_t) temp_cmdline, 0);
+  x86::init_libc((uint32_t) (uintptr_t) temp_cmdline, 0);
 }
 
 extern "C" int bv_main_start() {
@@ -102,7 +89,7 @@ extern "C" int bv_main_start() {
   // uint64_t _mem_size = 0x0100000 * 5;
   uint64_t _mem_size = 0x0100000;
   static uint64_t heap_start;
-  int ukld, num;
+  int ukld, num, r;
 
   // heap_start = ((uint64_t)&_end + PAGE_SIZE - 1) & PAGE_MASK;
 
@@ -121,22 +108,24 @@ extern "C" int bv_main_start() {
 
   // setup heap
   heap_start = bv_msgsendint(ukld, 4); // 4 is to get heap address
+  si.heap_start = heap_start;
+  printf("includeos heap: %llx\n", heap_start);
+
+  // setup container id
   num = bv_msgsendint(ukld, 5); // 5 is to get container id
   printf("container %d start\n", num);
   ctnr_num = num;
 
-  si.heap_start = heap_start;
+  // setup tls
+  // r = bv_msgsendint(ukld, 6);
+  // if(r < 0)
+  //   os::panic("error setup tls\n");
+
   // si.heap_size = _mem_size - heap_start;
-  printf("includeos heap: %llx\n", heap_start);
   // *((int *)si.heap_start) = 0x1030; //4k
 
   printf("heap start: 0x%llx \n", (unsigned long long)si.heap_start);
 
-  printf("_end: 0x%llx \n", (unsigned long long)_end);
-  // printf("heap >= 0x%llx < stack < 0x%llx\n",
-  //  (unsigned long long)si.heap_start, (unsigned long long)si.heap_size);
-
-  // heap
 
   kernel_start(&si);
   // pre_initialize_tls();

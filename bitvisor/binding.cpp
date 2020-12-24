@@ -106,3 +106,9 @@ void bv_console_write(const char *buf, unsigned long len) {
 	// 	bv_msgsendint(ttyout, b);
 	// }
 }
+
+int bv_set_tls_base(uintptr_t base) {
+	int r = -1;
+	r = bv_msgsendint(6, (long)base);
+	return r;
+}
