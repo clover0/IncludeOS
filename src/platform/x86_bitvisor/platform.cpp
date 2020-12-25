@@ -46,7 +46,7 @@ void __arch_subscribe_irq(unsigned char) {}
 
 void SMP::global_lock() noexcept {}
 void SMP::global_unlock() noexcept {}
-// int SMP::cpu_id() noexcept { return 0; }
+int SMP::cpu_id() noexcept { return 0; }
 int SMP::cpu_count() noexcept { return 1; }
 void SMP::signal(int) { }
 void SMP::add_task(SMP::task_func, int) { };

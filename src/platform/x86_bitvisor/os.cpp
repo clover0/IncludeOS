@@ -51,6 +51,8 @@ uint64_t os::nanos_asleep() noexcept {
   return os_cycles_hlt;
 }
 
+static std::vector<int> v;
+
 void kernel::default_stdout(const char* str, const size_t len)
 {
   bv_console_write(str, (int)len);
@@ -62,19 +64,18 @@ void kernel::start()
   // kernel::state().cmdline = cmdline;
 
   // Initialize stdout handlers
-  // if(os_default_stdout) {
-    // os::add_stdout(&kernel::default_stdout);
-  // }
-  printf("kernel::start\n");
-  // kernel::state().libc_initialized = true;
-  printf("hello unikernle! in kernel::start\n");
+  if(os_default_stdout) {
+    os::add_stdout(&kernel::default_stdout);
+  }
+  kprintf("kernel::start\n");
+  kprintf("hello unikernle! in kernel::start\n");
 
-  // PROFILE("Global stdout constructors");
-  // kernel::run_ctors(&__stdout_ctors_start, &__stdout_ctors_end);
+  kprintf("Global stdout constructors");
+  kernel::run_ctors(&__stdout_ctors_start, &__stdout_ctors_end);
 
   // // Call global ctors
-  // printf("Global kernel constructors\n");
-  // kernel::run_ctors(&__init_array_start, &__init_array_end);
+  kprintf("Global kernel constructors\n");
+  kernel::run_ctors(&__init_array_start, &__init_array_end);
 
   // PROFILE("");
   // // Print a fancy header
@@ -85,40 +86,39 @@ void kernel::start()
 
   // PROFILE("Memory map");
   // // Assign memory ranges used by the kernel
-  // auto& memmap = os::mem::vmmap();
-  // MYINFO("Assigning fixed memory ranges (Memory map)");
-  printf("vmmmap\n");
-  // memmap.assign_range({0x500, 0x5fff, "bitvisor"});
+  auto& memmap = os::mem::vmmap();
+  kprintf("Assigning fixed memory ranges (Memory map)\n");
   // memmap.assign_range({0x6000, 0x8fff, "Statman"});
   // memmap.assign_range({0xA000, 0x9fbff, "Stack"});
   // memmap.assign_range({(uintptr_t)&_LOAD_START_, (uintptr_t)&_end,
-  //       "ELF"});
-
+        // "ELF"});
   // Expects(kernel::heap_begin() and kernel::heap_max());
-  // // @note for security we don't want to expose this
+  // @note for security we don't want to expose this
   // memmap.assign_range({(uintptr_t)&_end + 1, kernel::heap_begin() - 1,
-  //       "Pre-heap"});
+        // "Pre-heap"});
 
   // uintptr_t span_max = std::numeric_limits<std::ptrdiff_t>::max();
   // uintptr_t heap_range_max_ = std::min(span_max, kernel::heap_max());
+  // kprintf("assign range\n");
 
-  // MYINFO("Assigning heap");
+  // kprintf("Assigning heap\n");
   // memmap.assign_range({kernel::heap_begin(), heap_range_max_,
   //       "Dynamic memory", kernel::heap_usage });
 
-  // MYINFO("Printing memory map");
+  // kprintf("Printing memory map");
   // for (const auto &i : memmap)
-  //   INFO2("* %s",i.second.to_string().c_str());
+  //   kprintf("* %s",i.second.to_string().c_str());
 
-  // __platform_init();
+  __platform_init();
 
-  // // MYINFO("Booted at monotonic_ns=%ld walltime_ns=%ld",
-  // //        bitvisor_clock_monotonic(), bitvisor_clock_wall());
-
-  // kernel::run_ctors(&__driver_ctors_start, &__driver_ctors_end);
+  // MYINFO("Booted at monotonic_ns=%ld walltime_ns=%ld",
+  //        bitvisor_clock_monotonic(), bitvisor_clock_wall());
+  kprintf("run ctors driver\n");
+  kernel::run_ctors(&__driver_ctors_start, &__driver_ctors_end);
 
   // BitVisor_manager::init();
 
+  kprintf("timer init \n");
   // // We don't need a start or stop function in bitvisor.
   // Timers::init(
   //   // timer start function
@@ -127,6 +127,7 @@ void kernel::start()
   //   [] () {});
 
   // Events::get().defer(Timers::ready);
+  kprintf("finish\n");
 }
 
 static inline void event_loop_inner()
