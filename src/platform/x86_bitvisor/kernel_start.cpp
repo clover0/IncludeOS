@@ -49,17 +49,13 @@ void kernel_start(const struct bv_start_info *si) {
   mem_size = si->heap_size;
 
   // __init_sanity_checks();
-  printf("init sanity checks\n");
-
-  // printf("kernel_start: heap >= 0x%llx < stack < 0x%llx\n",
-  //  (unsigned long long)free_mem_begin, (unsigned long long)mem_size);
-
+  
   // Preserve symbols from the ELF binary
   const size_t len = _move_symbols(free_mem_begin);
   // const size_t len = _move_symbols(machine_pool.data());
   free_mem_begin += len;
   mem_size -= len;
-  // printf("move symbols\n");
+  printf("move symbols\n");
 
   // Ze machine
   // __machine = os::Machine::create((void*)free_mem_begin, mem_size);
@@ -72,10 +68,6 @@ void kernel_start(const struct bv_start_info *si) {
   __machine->init();
   printf("machine init\n");
 
-  // error PFE?
-  // v.push_back(1);
-  // printf("vector \n");
-
   // Initialize system calls
   // _init_syscalls();
 
@@ -87,8 +79,7 @@ void kernel_start(const struct bv_start_info *si) {
 extern "C" int bv_main_start() {
   static struct bv_start_info si;
   extern char _stext[], _etext[], _erodata[], _end[];
-  // uint64_t _mem_size = 0x0100000 * 5;
-  uint64_t _mem_size = 0x01E00000; // on bv process size 80MB
+  uint64_t _mem_size = 0x01E00000; // on bv process size 30MB
   static uint64_t heap_start;
   int ukld, num, r;
 
@@ -108,7 +99,6 @@ extern "C" int bv_main_start() {
   }
 
   // setup heap
-  // heap_start = bv_msgsendint(ukld, 4); // 4 is to get heap address
   si.heap_start = heap_start;
   // si.heap_size = _mem_size - heap_start;
   si.heap_size = _mem_size;
@@ -121,12 +111,6 @@ extern "C" int bv_main_start() {
   num = bv_msgsendint(ukld, 5); // 5 is to get container id
   printf("container %d start\n", num);
   ctnr_num = num;
-
-  // setup tls base=0
-  // r = bv_msgsendint(ukld, 6);
-  // if(r < 0)
-    // os::panic("error setup tls\n");
-
 
   kernel_start(&si);
   // pre_initialize_tls();

@@ -81,8 +81,8 @@ void kernel::start()
   // // Print a fancy header
   // CAPTION("#include<os> // Literally");
 
-  // void* esp = get_cpu_esp();
-  // MYINFO("Stack: %p", esp);
+  void* esp = get_cpu_esp();
+  kprintf("Stack: %p", esp);
 
   // PROFILE("Memory map");
   // // Assign memory ranges used by the kernel
@@ -127,7 +127,6 @@ void kernel::start()
   //   [] () {});
 
   // Events::get().defer(Timers::ready);
-  kprintf("finish\n");
 }
 
 static inline void event_loop_inner()

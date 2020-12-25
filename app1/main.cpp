@@ -6,6 +6,6 @@
 // }
 
 void Service::start(){
-  // std::cout << "Hello world PD\n";
-  printf("[APP]hello app1 \n");
+  std::cout << "Hello world PD\n";
+  // printf("[APP]hello app1 \n");
 }
