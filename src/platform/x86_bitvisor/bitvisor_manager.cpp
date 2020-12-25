@@ -23,8 +23,8 @@ void BitVisor_manager::register_blk(delegate<Blk_ptr()> func)
 void BitVisor_manager::init() {
   INFO("bv", "Looking for bv devices");
 
-  // for (auto nic : nics)
-    // os::machine().add<hw::Nic> (nic());
-  // for (auto blk : blks)
+  for (auto nic : nics)
+    os::machine().add<hw::Nic> (nic());
+  // for (auto blk : blks) // TODO
     // os::machine().add<hw::Block_device> (blk());
 }

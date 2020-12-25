@@ -116,7 +116,7 @@ void kernel::start()
   kprintf("run ctors driver\n");
   kernel::run_ctors(&__driver_ctors_start, &__driver_ctors_end);
 
-  // BitVisor_manager::init();
+  BitVisor_manager::init();
 
   kprintf("timer init \n");
   // // We don't need a start or stop function in bitvisor.

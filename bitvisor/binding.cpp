@@ -43,17 +43,18 @@ void bv_yield(void) {
 	return;
 }
 
-int bv_net_write(char *buf, int size) {
+int bv_net_write(unsigned char *buf, size_t size) {
 	ulong tmp;
 
 	DOSYSCALL2(BV_NET_WRITE, buf, size, tmp);
 	return (int)tmp;
 }
 
-int bv_net_read(char *buf, int size) {
+int bv_net_read(unsigned char *buf, size_t size, size_t *rsize) {
 	ulong tmp;
 
 	DOSYSCALL2(BV_NET_READ, buf, size, tmp);
+	*rsize = tmp;
 	return (int)tmp;
 }
 

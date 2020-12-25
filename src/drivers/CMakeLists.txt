@@ -40,6 +40,11 @@ elseif (${PLATFORM} STREQUAL "solo5-hvt" OR ${PLATFORM} STREQUAL "solo5-spt")
     solo5blk.cpp
     solo5net.cpp
   )
+elseif (${PLATFORM} STREQUAL "bitvisor")
+  list(APPEND DRIVER_SRCS
+  # bvblk.cpp
+  bvnet.cpp
+  )
 endif()
 set(DRIVERS "")
 foreach(DRIVER ${DRIVER_SRCS})
