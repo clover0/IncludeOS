@@ -5,6 +5,7 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector")
 
 add_definitions(-DKERN_DEBUG)
+add_definitions(-DDEBUG)
 
 project (includeos C CXX)
 
