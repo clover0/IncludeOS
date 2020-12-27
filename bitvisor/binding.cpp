@@ -72,11 +72,11 @@ int bv_block_read(char *buf, int offset, int size) {
 	return (int)tmp;
 }
 
-int bv_get_time(unsigned long *time) {
+ulong bv_get_time() {
 	ulong tmp;
 
-	DOSYSCALL1(BV_GET_TIME, time, tmp);
-	return (int)tmp;
+	DOSYSCALL0(BV_GET_TIME, tmp);
+	return (ulong)tmp;
 }
 
 int bv_msgsendint(int desc, int data) {

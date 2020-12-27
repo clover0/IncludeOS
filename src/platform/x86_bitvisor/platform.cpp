@@ -1,8 +1,7 @@
 #include <os.hpp>
 #include <smp>
-// extern "C" {
-// #include <bitvisor/bitvisor.h>
-// }
+
+#include "../../../bitvisor/bitvisor.hpp"
 
 void __arch_poweroff()
 {
@@ -13,13 +12,12 @@ void __arch_poweroff()
 // returns wall clock time in nanoseconds since the UNIX epoch
 uint64_t __arch_system_time() noexcept
 {
-  // return bitvisor_clock_wall();
-  return 0;
+  return bv_get_time();
 }
+
 timespec __arch_wall_clock() noexcept
 {
-  // const uint64_t stamp = bitvisor_clock_wall();
-  const uint64_t stamp = 1000000000;
+  const uint64_t stamp = bv_get_time();
   timespec result;
   result.tv_sec = stamp / 1000000000ul;
   result.tv_nsec = stamp % 1000000000ul;
@@ -28,11 +26,8 @@ timespec __arch_wall_clock() noexcept
 
 uint32_t __arch_rand32()
 {
-  // TODO: fix me!
   // NOTE: bitvisor does not virtualize TSC
-  // return bitvisor_clock_wall() & 0xFFFFFFFF;
-  return 1;
-
+  return bv_get_time() & 0xFFFFFFFF;
 }
 
 void __platform_init() {

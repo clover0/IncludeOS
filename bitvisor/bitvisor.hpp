@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+typedef unsigned long ulong;
+
 void bv_nop(void);
 
 void bv_yield(void);
@@ -16,7 +18,7 @@ int bv_block_write(char *buf, int offset, int size);
 
 int bv_block_read(char *buf, int offset, int size, int *rsize);
 
-int bv_get_time(unsigned long *time);
+ulong bv_get_time();
 
 int bv_msgopen(const char *name);
 
