@@ -39,9 +39,15 @@ void __arch_enable_legacy_irq(unsigned char) {}
 void __arch_disable_legacy_irq(unsigned char) {}
 void __arch_subscribe_irq(unsigned char) {}
 
+namespace kernel {
+	Fixed_vector<delegate<void()>, 64> smp_global_init(Fixedvector_Init::UNINIT);
+}
+
 void SMP::global_lock() noexcept {}
 void SMP::global_unlock() noexcept {}
 int SMP::cpu_id() noexcept { return 0; }
 int SMP::cpu_count() noexcept { return 1; }
 void SMP::signal(int) { }
 void SMP::add_task(SMP::task_func, int) { };
+size_t SMP::early_cpu_total() noexcept { return 1; }
+
