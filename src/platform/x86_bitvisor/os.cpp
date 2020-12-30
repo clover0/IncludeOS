@@ -86,16 +86,16 @@ void kernel::start()
 
   // PROFILE("Memory map");
   // // Assign memory ranges used by the kernel
-  auto& memmap = os::mem::vmmap();
-  kprintf("Assigning fixed memory ranges (Memory map)\n");
+  // auto& memmap = os::mem::vmmap();
+  // kprintf("Assigning fixed memory ranges (Memory map)\n");
   // memmap.assign_range({0x6000, 0x8fff, "Statman"});
   // memmap.assign_range({0xA000, 0x9fbff, "Stack"});
   // memmap.assign_range({(uintptr_t)&_LOAD_START_, (uintptr_t)&_end,
-        // "ELF"});
+  //       "ELF"});
   // Expects(kernel::heap_begin() and kernel::heap_max());
-  // @note for security we don't want to expose this
+  // // @note for security we don't want to expose this
   // memmap.assign_range({(uintptr_t)&_end + 1, kernel::heap_begin() - 1,
-        // "Pre-heap"});
+  //       "Pre-heap"});
 
   // uintptr_t span_max = std::numeric_limits<std::ptrdiff_t>::max();
   // uintptr_t heap_range_max_ = std::min(span_max, kernel::heap_max());
@@ -120,13 +120,13 @@ void kernel::start()
 
   kprintf("timer init \n");
   // // We don't need a start or stop function in bitvisor.
-  // Timers::init(
-  //   // timer start function
-  //   [] (auto) {},
-  //   // timer stop function
-  //   [] () {});
+  Timers::init(
+    // timer start function
+    [] (auto) {},
+    // timer stop function
+    [] () {});
 
-  // Events::get().defer(Timers::ready);
+  Events::get().defer(Timers::ready);
 }
 
 static inline void event_loop_inner()

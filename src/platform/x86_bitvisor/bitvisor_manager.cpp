@@ -13,6 +13,7 @@ static std::vector<delegate<BitVisor_manager::Blk_ptr()>> blks;
 
 void BitVisor_manager::register_net(delegate<Nic_ptr()> func)
 {
+  kprintf("bitvisor manger: register net \n");
   nics.push_back(func);
 }
 void BitVisor_manager::register_blk(delegate<Blk_ptr()> func)
@@ -21,7 +22,7 @@ void BitVisor_manager::register_blk(delegate<Blk_ptr()> func)
 }
 
 void BitVisor_manager::init() {
-  printf("bitvisor manger init\n");
+  kprintf("bitvisor manger init \n");
 
   for (auto nic : nics)
     os::machine().add<hw::Nic> (nic());

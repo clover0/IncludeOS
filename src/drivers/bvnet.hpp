@@ -1,7 +1,4 @@
 
-#ifndef VIRTIO_SOLO5NET_HPP
-#define VIRTIO_SOLO5NET_HPP
-
 #include <common>
 #include <hw/pci_device.hpp>
 #include <net/buffer_store.hpp>
@@ -74,5 +71,3 @@ private:
   net::BufferStore bufstore_;
 
 };
-
-#endif

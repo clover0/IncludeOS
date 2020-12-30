@@ -43,7 +43,7 @@ elseif (${PLATFORM} STREQUAL "solo5-hvt" OR ${PLATFORM} STREQUAL "solo5-spt")
 elseif (${PLATFORM} STREQUAL "bitvisor")
   list(APPEND DRIVER_SRCS
   # bvblk.cpp
-  bvnet.cpp
+    bvnet.cpp
   )
 endif()
 set(DRIVERS "")

@@ -7,5 +7,6 @@ conan_basic_setup()
 include(os)
 
 os_add_executable(hello "Hello world - OS included" main.cpp start.c)
-#os_add_drivers(hello virtionet vmxnet3 boot_logger)
+# os_add_drivers(hello virtionet vmxnet3 boot_logger)
+os_add_drivers(hello bvnet)
 os_add_stdout(hello default_stdout)
