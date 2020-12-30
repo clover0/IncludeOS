@@ -10,12 +10,13 @@ get_fs_sentinel_value:
     ret
 
 pre_initialize_tls:
-    mov ecx, IA32_FS_BASE
-    mov edx, 0x0
-    mov eax, initial_tls_table
-    wrmsr
+    ; mov ecx, IA32_FS_BASE
+    ; mov edx, 0x0
+    ; mov eax, initial_tls_table
+    ; wrmsr
     ;; stack starts at ELF boundary growing down
-    mov rsp, _ELF_START_
+    ; mov rsp, _ELF_START_
+    ; mov rsp, 0x03ff000
     call kernel_start
     ret
 

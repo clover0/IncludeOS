@@ -32,6 +32,14 @@ uint32_t __arch_rand32()
 
 void __platform_init() {
   // minimal CPU exception handlers already set by bitvisor tender
+
+  // いらないかも
+  
+  // resize up all PER-CPU structures
+  for (auto lambda : kernel::smp_global_init) { lambda(); }
+
+  // setup main thread after PER-CPU ctors
+  // kernel::setup_main_thread(0);
 }
 
 void __arch_reboot() {}

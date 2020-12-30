@@ -159,9 +159,9 @@ static inline void event_loop_inner()
   // if (res != 0)
   // {
   //   // handle any network
-  //   // for (auto& nic : os::machine().get<hw::Nic>()) {
-  //   //   nic.get().poll();
-  //   // }
+    for (auto& nic : os::machine().get<hw::Nic>()) {
+      nic.get().poll();
+    }
   // }
   if (count == 400000) {
     // printf("-- %d --\n", ctnr_num);

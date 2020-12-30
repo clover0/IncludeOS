@@ -22,8 +22,9 @@ struct alignas(SMP_ALIGN) context_buffer
 {
   std::array<char, 512> buffer;
 };
-static std::vector<context_buffer> contexts;
-SMP_RESIZE_EARLY_GCTOR(contexts);
+// static std::vector<context_buffer> contexts; // TODO:
+static std::array<context_buffer, 5> contexts;
+// SMP_RESIZE_EARLY_GCTOR(contexts);
 
 // NOTE: panics cannot be per-cpu because it might not be ready yet
 // NOTE: it's also used by OS::is_panicking(), used by OS::print(...)
@@ -195,6 +196,8 @@ extern "C"
 void _init_syscalls()
 {
   // make sure each buffer is zero length so it won't always show up in crashes
-  for (auto& ctx : contexts)
+  int i = 0;
+  for (auto& ctx : contexts){
       ctx.buffer[0] = 0;
+  }
 }
