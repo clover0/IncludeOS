@@ -96,10 +96,6 @@ int bv_msgopen(const char *name) {
 void bv_console_write(const char *buf, unsigned long len) {
 	char c;
 	while((c = *buf++) != '\0'){
-		if ( c == '\n') {
-			bv_msgsendint(ttyout, '\n');
-			break;
-		}
 		bv_msgsendint(ttyout, c);
 	}
 }

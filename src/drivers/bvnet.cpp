@@ -23,7 +23,9 @@ BVNet::BVNet()
   // bv_net_info(&ni);
   // mac_addr = MAC::Addr(ni.mac_address[0], ni.mac_address[1], ni.mac_address[2],
   //                      ni.mac_address[3], ni.mac_address[4], ni.mac_address[5]);
-  mac_addr = MAC::Addr(0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc);
+  // mac_addr = MAC::Addr(0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc);
+  // TODO: 
+  mac_addr = MAC::Addr(0x00, 0x0c, 0x29, 0xeb, 0xe3, 0xd6); // BV NIC
 }
 
 void BVNet::transmit(net::Packet_ptr pckt)
@@ -35,7 +37,6 @@ void BVNet::transmit(net::Packet_ptr pckt)
     // next in line
     auto next = tail->detach_tail();
     // write data to networkn
-    printf("bv_net_write size=%d \n", tail->size());
     bv_net_write(tail->buf(), tail->size());
     // set tail to next, releasing tail
     tail = std::move(next);
