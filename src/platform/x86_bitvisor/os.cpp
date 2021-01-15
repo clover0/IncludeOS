@@ -82,32 +82,31 @@ void kernel::start()
   // CAPTION("#include<os> // Literally");
 
   void* esp = get_cpu_esp();
-  kprintf("Stack: %p", esp);
+  kprintf("Stack: %p\n", esp);
 
-  // PROFILE("Memory map");
-  // // Assign memory ranges used by the kernel
-  // auto& memmap = os::mem::vmmap();
-  // kprintf("Assigning fixed memory ranges (Memory map)\n");
+  PROFILE("Memory map");
+  // Assign memory ranges used by the kernel
+  auto& memmap = os::mem::vmmap();
+  kprintf("Assigning fixed memory ranges (Memory map)\n");
   // memmap.assign_range({0x6000, 0x8fff, "Statman"});
-  // memmap.assign_range({0xA000, 0x9fbff, "Stack"});
-  // memmap.assign_range({(uintptr_t)&_LOAD_START_, (uintptr_t)&_end,
-  //       "ELF"});
+  memmap.assign_range({0xA000, 0x9fbff, "Stack"});
+  memmap.assign_range({(uintptr_t)&_LOAD_START_, (uintptr_t)&_end,
+        "ELF"});
   // Expects(kernel::heap_begin() and kernel::heap_max());
-  // // @note for security we don't want to expose this
+  // // // @note for security we don't want to expose this
   // memmap.assign_range({(uintptr_t)&_end + 1, kernel::heap_begin() - 1,
-  //       "Pre-heap"});
+        // "Pre-heap"});
 
   // uintptr_t span_max = std::numeric_limits<std::ptrdiff_t>::max();
   // uintptr_t heap_range_max_ = std::min(span_max, kernel::heap_max());
   // kprintf("assign range\n");
 
-  // kprintf("Assigning heap\n");
   // memmap.assign_range({kernel::heap_begin(), heap_range_max_,
-  //       "Dynamic memory", kernel::heap_usage });
+        // "Dynamic memory", kernel::heap_usage });
 
-  // kprintf("Printing memory map");
-  // for (const auto &i : memmap)
-  //   kprintf("* %s",i.second.to_string().c_str());
+  kprintf("Printing memory map");
+  for (const auto &i : memmap)
+    kprintf("* %s",i.second.to_string().c_str());
 
   __platform_init();
 
@@ -131,43 +130,43 @@ void kernel::start()
 
 static inline void event_loop_inner()
 {
-  // int res = 0;
-  // auto nxt = Timers::next();
-  // if (nxt == std::chrono::nanoseconds(0))
-  // {
-  //   // no next timer, wait forever
-  //   //printf("Waiting 15s, next is indeterminate...\n");
-  //   const unsigned long long count = 15000000000ULL;
-  //   // res = bitvisor_yield(bitvisor_clock_monotonic() + count);
-  //   os_cycles_hlt += count;
-  // }
-  // else if (nxt == std::chrono::nanoseconds(1))
-  // {
-  //   // there is an imminent or activated timer, don't wait
-  //   //printf("Not waiting, imminent timer...\n");
-  // }
-  // else
-  // {
-  //   //printf("Waiting %llu nanos\n", nxt.count());
-  //   // res = bitvisor_yield(bitvisor_clock_monotonic() + nxt.count());
-  //   os_cycles_hlt += nxt.count();
-  // }
+  int res = 0;
+  auto nxt = Timers::next();
+  if (nxt == std::chrono::nanoseconds(0))
+  {
+    // no next timer, wait forever
+    //printf("Waiting 15s, next is indeterminate...\n");
+    const unsigned long long count = 15000000000ULL;
+    // res = bv_yield(bitvisor_clock_monotonic() + count);
+    os_cycles_hlt += count;
+  }
+  else if (nxt == std::chrono::nanoseconds(1))
+  {
+    // there is an imminent or activated timer, don't wait
+    //printf("Not waiting, imminent timer...\n");
+  }
+  else
+  {
+    //printf("Waiting %llu nanos\n", nxt.count());
+    // res = bitvisor_yield(bitvisor_clock_monotonic() + nxt.count());
+    os_cycles_hlt += nxt.count();
+  }
 
-  // // handle any activated timers
-  // // Timers::timers_handler();
-  // // Events::get().process_events();
+  // handle any activated timers
+  // Timers::timers_handler();
+  // Events::get().process_events();
   // if (res != 0)
   // {
-  //   // handle any network
+    // handle any network
+    
+  // }
+  if (count++ == 20000) {
     for (auto& nic : os::machine().get<hw::Nic>()) {
       nic.get().poll();
     }
-  // }
-  if (count == 400000) {
-    // printf("-- %d --\n", ctnr_num);
+    count = 0;
   }
-  count++;
-  bv_yield();
+   bv_yield();
 }
 
 void os::event_loop()

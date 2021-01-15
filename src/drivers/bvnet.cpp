@@ -21,8 +21,9 @@ BVNet::BVNet()
   INFO("BVNet", "Driver initializing");
   struct bv_net_info ni;
   // bv_net_info(&ni);
-  mac_addr = MAC::Addr(ni.mac_address[0], ni.mac_address[1], ni.mac_address[2],
-                       ni.mac_address[3], ni.mac_address[4], ni.mac_address[5]);
+  // mac_addr = MAC::Addr(ni.mac_address[0], ni.mac_address[1], ni.mac_address[2],
+  //                      ni.mac_address[3], ni.mac_address[4], ni.mac_address[5]);
+  mac_addr = MAC::Addr(0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc);
 }
 
 void BVNet::transmit(net::Packet_ptr pckt)
@@ -33,7 +34,8 @@ void BVNet::transmit(net::Packet_ptr pckt)
   while (tail) {
     // next in line
     auto next = tail->detach_tail();
-    // write data to network
+    // write data to networkn
+    printf("bv_net_write size=%d \n", tail->size());
     bv_net_write(tail->buf(), tail->size());
     // set tail to next, releasing tail
     tail = std::move(next);
@@ -67,7 +69,7 @@ net::Packet_ptr BVNet::recv_packet()
       return net::Packet_ptr(pckt);
     }
   }
-  bufstore().release(&pckt);
+  bufstore().release(pckt);
   return nullptr;
 }
 

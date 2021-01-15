@@ -55,7 +55,7 @@ int bv_net_read(unsigned char *buf, size_t size, size_t *rsize) {
 
 	DOSYSCALL2(BV_NET_READ, buf, size, tmp);
 	*rsize = tmp;
-	return (int)tmp;
+	return (int)0;
 }
 
 int bv_block_write(char *buf, int offset, int size) {
@@ -96,16 +96,12 @@ int bv_msgopen(const char *name) {
 void bv_console_write(const char *buf, unsigned long len) {
 	char c;
 	while((c = *buf++) != '\0'){
+		if ( c == '\n') {
+			bv_msgsendint(ttyout, '\n');
+			break;
+		}
 		bv_msgsendint(ttyout, c);
 	}
-	// bv_msgsendint(ttyout, '\0');
-	
-	// char b;
-	// for (unsigned long i = 0; i < 20; i++) {
-	// 	if (*buf == '\0') break;
-	// 	b = buf[i];
-	// 	bv_msgsendint(ttyout, b);
-	// }
 }
 
 int bv_set_tls_base(uintptr_t base) {

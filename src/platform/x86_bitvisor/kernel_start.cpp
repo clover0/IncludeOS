@@ -56,7 +56,7 @@ extern "C" int bv_main_start() {
     return 1;
   }
 
-  // setup jjjukl handler
+  // setup ukl handler
   ukld = bv_msgopen("ukl");
   if (ttyout < 0) {
     printf("cant open ukl\n");
@@ -71,22 +71,14 @@ extern "C" int bv_main_start() {
   mem_size = _mem_size - heap_start;
   // si.heap_size = _mem_size;
 
-  printf("_end: 0x%llx\n", (unsigned long long)_end);
-  printf("heap start: 0x%llx\n", (unsigned long long)free_mem_begin);
-  printf("heap size: 0x%llx\n", (unsigned long long)mem_size);
+  // printf("_end: 0x%llx\n", (unsigned long long)_end);
+  // printf("heap start: 0x%llx\n", (unsigned long long)free_mem_begin);
+  // printf("heap size: 0x%llx\n", (unsigned long long)mem_size);
 
   // setup container id
   num = bv_msgsendint(ukld, 5); // 5 is to get container id
-  printf("container j%d start\n", num);
+  printf("container %d start\n", num);
   ctnr_num = num;
-
-  asm volatile ("mov %%rsp,%0"
-		      : "=r" (rsp));
-  printf("includeos RSP(before kenel_start): %x\n", rsp);
-  asm volatile ("mov %%rbp,%0"
-		      : "=r" (rbp));
-  printf("includeos RBP(before kenel_start): %x\n", rbp);
-
 
   // pre_initialize_tls();
   kernel_start();
@@ -122,14 +114,7 @@ void kernel_start() {
   // kernel::init_heap((uintptr_t)free_mem_begin, (uintptr_t)free_mem_begin + mem_size);
   printf("machine init\n");
 
-  // printf("vector address ::%p::\n", &v);
-  // v.push_back(5);
-  // printf("vector pushe 5 \n");
-  // v.push_back(2);
-  // printf("vector pushed ! \n");
-  // printf("vector[1] ::%p, %d::\n", &v[1], v[1]);
-  // printf("vector[2] ::%p::\n", &v[2]);
-  // printf("test vec size %d \n", v.size());
+
 
   // Initialize system calls
   _init_syscalls();
