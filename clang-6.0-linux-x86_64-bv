@@ -16,4 +16,6 @@ build_type=Release
 CC=clang-6.0
 CXX=clang++-6.0
 CFLAGS=-msse3 -mfpmath=sse -O2 -g -fno-stack-protector
+#CFLAGS=-mno-sse -mno-sse2 -mno-sse3 -O1 -g -fno-stack-protector
 CXXFLAGS=-msse3 -mfpmath=sse -O2 -g -fno-stack-protector
+#CXXFLAGS=-mno-sse -mno-sse2 -mno-sse3 -O1 -g -fno-stack-protector

@@ -160,7 +160,7 @@ static inline void event_loop_inner()
     // handle any network
     
   // }
-  if (count++ == 20000) {
+  if (count++ == 50) {
     for (auto& nic : os::machine().get<hw::Nic>()) {
       nic.get().poll();
     }

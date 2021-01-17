@@ -1,18 +1,30 @@
 #include <cmath> // rand()
 #include <sstream>
 
-#include <os>
-#include <net/interfaces>
-#include <timers>
 #include <net/http/request.hpp>
 #include <net/http/response.hpp>
+#include <net/http/server.hpp>
+#include <net/iana.hpp>
+#include <net/interfaces>
+#include <os>
+#include <timers>
 
 #include <hal/machine.hpp>
 
+#include "../bitvisor/bitvisor.hpp"
+
+#define SEND_BUF_LEN 100
+#define SERVER_TEST_LEN 10
+#define PACKETS_PER_INTERVAL 2
+#define NCAT_RECEIVE_PORT 9000
+#define HTTP_SERVE_PORT 80
+
+uint64_t data_len{0};
+std::unique_ptr<http::Server> server;
+
 using namespace std::chrono;
 
-std::string HTML_RESPONSE()
-{
+std::string HTML_RESPONSE() {
   const int color = rand();
 
   // Generate some HTML
@@ -33,28 +45,44 @@ std::string HTML_RESPONSE()
   return stream.str();
 }
 
-http::Response handle_request(const http::Request& req)
-{
+void root_handler(http::Request_ptr req, http::Response_writer_ptr writer) {
+  // auto res = handle_request(*req);
+  // set content type
+  writer->header().set_field(http::header::Server, "IncludeOS/0.10");
+
+  // GET /
+  if (req->method() == http::GET && req->uri().to_string() == "/") {
+    // add HTML response
+    writer->write(HTML_RESPONSE());
+
+    // set Content type and length
+    writer->header().set_field(http::header::Content_Type, "text/html; charset=UTF-8");
+    // writer->header().set_content_length();
+  } else {
+    // Generate 404 response
+    writer->write_header(http::Not_Found);
+  }
+  writer->header().set_field(http::header::Connection, "close");
+}
+
+http::Response handle_request(const http::Request &req) {
   printf("<Service> Request:\n%s\n", req.to_string().c_str());
 
   http::Response res;
 
-  auto& header = res.header();
+  auto &header = res.header();
 
   header.set_field(http::header::Server, "IncludeOS/0.10");
 
   // GET /
-  if(req.method() == http::GET && req.uri().to_string() == "/")
-  {
+  if (req.method() == http::GET && req.uri().to_string() == "/") {
     // add HTML response
     res.add_body(HTML_RESPONSE());
 
     // set Content type and length
     header.set_field(http::header::Content_Type, "text/html; charset=UTF-8");
     header.set_field(http::header::Content_Length, std::to_string(res.body().size()));
-  }
-  else
-  {
+  } else {
     // Generate 404 response
     res.set_status_code(http::Not_Found);
   }
@@ -64,72 +92,86 @@ http::Response handle_request(const http::Request& req)
   return res;
 }
 
-struct my_device {
-  int i = 0;
-};
+void send_cb() {
+  data_len += SEND_BUF_LEN;
+}
 
-void Service::start()
-{
+void send_data(net::udp::Socket &client, net::Inet &inet) {
+  // const net::Addr destip = net::Addr(192,168,0,181);
+  const net::Addr destip = net::Addr(172, 16, 189, 1);
+  printf("in send data-------------------------------------\n");
+  for (size_t i = 0; i < PACKETS_PER_INTERVAL; i++) {
+    const char c = 'A' + (i % 26);
+    std::string buff(SEND_BUF_LEN, c);
+    // client.sendto(inet.gateway(), NCAT_RECEIVE_PORT, buff.data(), buff.size(), send_cb);
+    client.sendto(destip, NCAT_RECEIVE_PORT, buff.data(), buff.size(), send_cb);
+    printf("send UDP (%c) %d \n", c, i);
+  }
+}
 
-  printf("Service started \n");
-  my_device dev1{42};
-  auto dev = std::make_unique<my_device>(dev1);
-  auto* stored_addr = dev.get();
+void udp_test(net::Inet &inet) {
+  auto &udp = inet.udp();
+  auto &client = udp.bind(15000);
+  printf("app send udp data 1 \n");
+  send_data(client, inet);
+}
 
-  printf("Made device_ptr, adding to machine\n");
-  auto dev_i = os::machine().add<my_device>(std::move(dev));
-  auto& device = os::machine().get<my_device>(dev_i);
-  Expects(device.i == 42);
-  Expects(&device == stored_addr);
-  Expects(dev.get() == nullptr);
+void http_test(net::Inet &inet) {
+  using namespace http;
 
-  // Get the first IP stack
-  // It should have configuration from config.json
-  auto& inet = net::Interfaces::get(0);
+  server = std::make_unique<Server>(inet.tcp());
 
-  // Print some useful netstats every 30 secs
-  Timers::periodic(5s, 30s,
-  [&inet] (uint32_t) {
-    printf("<Service> TCP STATUS:\n%s\n", inet.tcp().status().c_str());
-  });
+  server->on_request(root_handler);
 
-  // Set up a TCP server on port 80
-  auto& server = inet.tcp().listen(80);
+  server->listen(HTTP_SERVE_PORT);
+}
+
+void tcp_test(net::Inet &inet) {
+  auto &server = inet.tcp().listen(HTTP_SERVE_PORT);
+  printf("Start TCP Listen \n");
 
   // Add a TCP connection handler - here a hardcoded HTTP-service
   server.on_connect(
-  [] (net::tcp::Connection_ptr conn) {
-    printf("<Service> @on_connect: Connection %s successfully established.\n",
-      conn->remote().to_string().c_str());
-    // read async with a buffer size of 1024 bytes
-    // define what to do when data is read
-    conn->on_read(1024,
-    [conn] (auto buf)
-    {
-      printf("<Service> @on_read: %lu bytes received.\n", buf->size());
-      try
-      {
-        const std::string data((const char*) buf->data(), buf->size());
-        // try to parse the request
-        http::Request req{data};
+      [](net::tcp::Connection_ptr conn) {
+        printf("<Service> @on_connect: Connection %s successfully established.\n",
+               conn->remote().to_string().c_str());
+        // read async with a buffer size of 1024 bytes
+        // define what to do when data is read
+        conn->on_read(1024,
+        [conn](auto buf) {
+          printf("<Service> @on_read: %lu bytes received.\n", buf->size());
+          try {
+            const std::string data((const char*) buf->data(), buf->size());            // try to parse the request
+            http::Request req{data};
 
-        // handle the request, getting a matching response
-        auto res = handle_request(req);
+            // handle the request, getting a matching response
+            auto res = handle_request(req);
 
-        printf("<Service> Responding with %u %s.\n",
-          res.status_code(), http::code_description(res.status_code()).data());
+            printf("<Service> Responding with %u %s.\n",
+                    res.status_code(), http::code_description(res.status_code()).data());
 
-        conn->write(res);
-      }
-      catch(const std::exception& e)
-      {
-        printf("<Service> Unable to parse request:\n%s\n", e.what());
-      }
-    });
-    conn->on_write([](size_t written) {
-      printf("<Service> @on_write: %lu bytes written.\n", written);
-    });
-  });
+            conn->write(res);
+          } catch (const std::exception &e) {
+            printf("<Service> Unable to parse request:\n%s\n", e.what());
+          }
+        });
+        conn->on_write([](size_t written) {
+          printf("<Service> @on_write: %lu bytes written.\n", written);
+        });
+      });
+}
+void Service::start() {
+
+  printf("Service started \n");
+  
+  // Get the first IP stack
+  // It should have configuration from config.json
+  auto &inet = net::Interfaces::get(0);
+  inet.network_config({172, 16, 189, 132}, {255, 255, 255, 0}, {172, 16, 189, 1});
+
+  // udp_test(inet);
+  // tcp_test(inet);
+  http_test(inet);
 
   printf("*** Basic demo service started ***\n");
 }
