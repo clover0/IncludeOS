@@ -4,13 +4,10 @@
 #include <kernel/events.hpp>
 #include <kernel/timers.hpp>
 #include <kernel/bitvisor_manager.hpp>
-//#include <smp>
 #include <info>
 #include <system_log>
 
-// extern "C" {
 #include "../../../bitvisor/bitvisor.hpp"
-// }
 
 // sleep statistics
 static uint64_t os_cycles_hlt = 0;

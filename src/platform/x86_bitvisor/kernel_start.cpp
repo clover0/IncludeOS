@@ -46,7 +46,6 @@ extern "C" int bv_main_start() {
   uint64_t _mem_size = 0x03200000; // as 50MB
   static uint64_t heap_start;
   int ukld, num, r;
-  unsigned long rsp, rbp;
 
   heap_start = ((uint64_t)&_end + PAGE_SIZE - 1) & PAGE_MASK;
 
@@ -63,17 +62,9 @@ extern "C" int bv_main_start() {
     return 1;
   }
 
-  // set tls
-  bv_msgsendint(ukld, 6);
-
   // setup heap
   free_mem_begin = heap_start;
   mem_size = _mem_size - heap_start;
-  // si.heap_size = _mem_size;
-
-  // printf("_end: 0x%llx\n", (unsigned long long)_end);
-  // printf("heap start: 0x%llx\n", (unsigned long long)free_mem_begin);
-  // printf("heap size: 0x%llx\n", (unsigned long long)mem_size);
 
   // setup container id
   num = bv_msgsendint(ukld, 5); // 5 is to get container id
