@@ -8,6 +8,7 @@
 #include <net/interfaces>
 #include <os>
 #include <timers>
+#include <memdisk>
 
 #include <hal/machine.hpp>
 
@@ -46,7 +47,7 @@ std::string HTML_RESPONSE() {
 }
 
 void root_handler(http::Request_ptr req, http::Response_writer_ptr writer) {
-  // auto res = handle_request(*req);
+  printf("<service>handle request\n");
   // set content type
   writer->header().set_field(http::header::Server, "IncludeOS/0.10");
 
@@ -57,7 +58,12 @@ void root_handler(http::Request_ptr req, http::Response_writer_ptr writer) {
 
     // set Content type and length
     writer->header().set_field(http::header::Content_Type, "text/html; charset=UTF-8");
-    // writer->header().set_content_length();
+  } else if (req->method() == http::GET && req->uri().to_string() == "/test1") {
+    // GET /test1 file
+    auto& filesys = fs::memdisk().fs();
+    auto buf = filesys.read_file("/static/test1.html");
+    writer->write(buf.to_string());
+    writer->header().set_field(http::header::Content_Type, "text/html; charset=UTF-8");
   } else {
     // Generate 404 response
     writer->write_header(http::Not_Found);
@@ -163,11 +169,17 @@ void tcp_test(net::Inet &inet) {
 void Service::start() {
 
   printf("Service started \n");
-  
+
+  fs::memdisk().init_fs(
+      [](auto err, auto &) {
+        assert(!err);
+      });
+
   // Get the first IP stack
   // It should have configuration from config.json
   auto &inet = net::Interfaces::get(0);
-  inet.network_config({172, 16, 189, 132}, {255, 255, 255, 0}, {172, 16, 189, 1});
+  // inet.network_config({172, 16, 189, 132}, {255, 255, 255, 0}, {172, 16, 189, 1});
+  inet.network_config({192, 168, 0, 196}, {255, 255, 255, 0}, {192, 168, 0, 1});
 
   // udp_test(inet);
   // tcp_test(inet);

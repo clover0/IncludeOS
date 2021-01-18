@@ -8,6 +8,8 @@ RUN apt-get update && \
     nasm \
     curl \
     gdb \
+    python3.7 \
+    vim \
     git && \
     rm -rf /var/lib/apt/lists/*
 
@@ -18,6 +20,8 @@ RUN curl -Lo conan.deb https://dl.bintray.com/conan/installers/conan-ubuntu-64_$
     rm conan.deb
 RUN conan config install https://github.com/includeos/conan_config.git && \
     conan config set general.default_profile=clang-$clang_version-linux-x86_64
+
+RUN ln -s /usr/bin/python3.7 /usr/bin/python3
 
 # USER 1000
 
