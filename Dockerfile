@@ -10,6 +10,7 @@ RUN apt-get update && \
     gdb \
     python3.7 \
     vim \
+    wget \
     git && \
     rm -rf /var/lib/apt/lists/*
 

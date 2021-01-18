@@ -48,15 +48,11 @@ std::string HTML_RESPONSE() {
 
 void root_handler(http::Request_ptr req, http::Response_writer_ptr writer) {
   printf("<service>handle request\n");
-  // set content type
   writer->header().set_field(http::header::Server, "IncludeOS/0.10");
 
   // GET /
   if (req->method() == http::GET && req->uri().to_string() == "/") {
-    // add HTML response
     writer->write(HTML_RESPONSE());
-
-    // set Content type and length
     writer->header().set_field(http::header::Content_Type, "text/html; charset=UTF-8");
   } else if (req->method() == http::GET && req->uri().to_string() == "/test1") {
     // GET /test1 file
@@ -102,10 +98,9 @@ void send_cb() {
   data_len += SEND_BUF_LEN;
 }
 
-void send_data(net::udp::Socket &client, net::Inet &inet) {
+void send_udp_data(net::udp::Socket &client, net::Inet &inet) {
   // const net::Addr destip = net::Addr(192,168,0,181);
   const net::Addr destip = net::Addr(172, 16, 189, 1);
-  printf("in send data-------------------------------------\n");
   for (size_t i = 0; i < PACKETS_PER_INTERVAL; i++) {
     const char c = 'A' + (i % 26);
     std::string buff(SEND_BUF_LEN, c);
@@ -118,17 +113,14 @@ void send_data(net::udp::Socket &client, net::Inet &inet) {
 void udp_test(net::Inet &inet) {
   auto &udp = inet.udp();
   auto &client = udp.bind(15000);
-  printf("app send udp data 1 \n");
-  send_data(client, inet);
+  send_udp_data(client, inet);
 }
 
 void http_test(net::Inet &inet) {
   using namespace http;
 
   server = std::make_unique<Server>(inet.tcp());
-
   server->on_request(root_handler);
-
   server->listen(HTTP_SERVE_PORT);
 }
 
@@ -136,7 +128,6 @@ void tcp_test(net::Inet &inet) {
   auto &server = inet.tcp().listen(HTTP_SERVE_PORT);
   printf("Start TCP Listen \n");
 
-  // Add a TCP connection handler - here a hardcoded HTTP-service
   server.on_connect(
       [](net::tcp::Connection_ptr conn) {
         printf("<Service> @on_connect: Connection %s successfully established.\n",
@@ -166,23 +157,19 @@ void tcp_test(net::Inet &inet) {
         });
       });
 }
-void Service::start() {
 
-  printf("Service started \n");
+void Service::start() {
 
   fs::memdisk().init_fs(
       [](auto err, auto &) {
         assert(!err);
       });
 
-  // Get the first IP stack
-  // It should have configuration from config.json
   auto &inet = net::Interfaces::get(0);
   // inet.network_config({172, 16, 189, 132}, {255, 255, 255, 0}, {172, 16, 189, 1});
   inet.network_config({192, 168, 0, 196}, {255, 255, 255, 0}, {192, 168, 0, 1});
 
   // udp_test(inet);
-  // tcp_test(inet);
   http_test(inet);
 
   printf("*** Basic demo service started ***\n");
