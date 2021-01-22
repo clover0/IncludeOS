@@ -166,6 +166,7 @@ void recv(size_t len)
   received += len;
 }
 
+static unsigned long start_time = 0;
 void tcp_test(net::Inet &inet) {
   using namespace net::tcp;
 
@@ -183,15 +184,18 @@ void tcp_test(net::Inet &inet) {
   tcp.listen(port_send).on_connect([](Connection_ptr conn)
   {
     printf("%s connected. Sending file %u KB\n", conn->remote().to_string().c_str(), SIZE/(1024));
+    start_time = bv_get_time();
 
     conn->on_disconnect([] (Connection_ptr self, Connection::Disconnect)
     {
       if(!self->is_closing())
         self->close();
+      printf("tcp send result time=%d[ms] \n", (bv_get_time()-start_time) / 1000);
     });
     conn->on_write([](size_t n)
     {
       recv(n);
+      printf("tcp send write result time=%d[ms] \n", (bv_get_time()-start_time)/1000);
     });
 
     if (! keep_last) {
@@ -205,8 +209,9 @@ void tcp_test(net::Inet &inet) {
 
   tcp.listen(port_recv).on_connect([](Connection_ptr conn)
   {
-    printf("%s connected. ", conn->remote().to_string().c_str());
+    printf("%s connected. \n", conn->remote().to_string().c_str());
     filerino.reset();
+    start_time = bv_get_time();
 
     conn->on_close([]
     {
@@ -216,20 +221,20 @@ void tcp_test(net::Inet &inet) {
                             net::tcp::Connection::Disconnect reason)
     {
       (void) reason;
-      if(const auto bytes_sacked = self->bytes_sacked(); bytes_sacked)
-        printf("SACK: %zu bytes (%zu kB)\n", bytes_sacked, bytes_sacked/(1024));
+      // if(const auto bytes_sacked = self->bytes_sacked(); bytes_sacked)
+        // printf("SACK: %zu bytes (%zu kB)\n", bytes_sacked, bytes_sacked/(1024));
 
       if(!self->is_closing())
         self->close();
-
+      printf("tcp recv result time=%d[ms] \n", (bv_get_time()-start_time)/1000);
     });
     conn->on_read(SIZE, [] (buffer_t buf)
     {
-      printf("on read\n");
       recv(buf->size());
       if (UNLIKELY(keep_last)) {
         filerino.append(buf);
       }
+      printf("tcp recv read time=%d[ms] \n", (bv_get_time()-start_time)/1000);
     });
   });
 }
