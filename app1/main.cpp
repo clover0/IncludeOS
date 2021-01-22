@@ -25,6 +25,31 @@ std::unique_ptr<http::Server> server;
 
 using namespace std::chrono;
 
+struct file {
+  using Buf = net::tcp::buffer_t;
+  using Vec = std::vector<Buf>;
+
+  auto begin() { return chunks.begin(); }
+  auto end()   { return chunks.end();   }
+
+  size_t size(){ return sz; }
+  size_t blkcount() { return chunks.size(); }
+
+  void append(Buf& b) {
+    chunks.push_back(b);
+    sz += b->size();
+  }
+
+  void reset() {
+    chunks.clear();
+    sz = 0;
+  }
+
+  Vec chunks{};
+  size_t sz{};
+};
+file filerino;
+
 std::string HTML_RESPONSE() {
   const int color = rand();
 
@@ -124,41 +149,93 @@ void http_test(net::Inet &inet) {
   server->listen(HTTP_SERVE_PORT);
 }
 
+static const uint32_t  SIZE = 1024*32;
+bool      timestamps{true};
+bool      SACK{true};
+std::chrono::milliseconds dack{40};
+uint64_t  received{0};
+uint32_t  winsize{8192};
+uint8_t   wscale{5};
+uint16_t port_send {9000};
+uint16_t port_recv {9001};
+bool      keep_last = false;
+net::tcp::buffer_t blob = nullptr;
+
+void recv(size_t len)
+{
+  received += len;
+}
+
 void tcp_test(net::Inet &inet) {
-  auto &server = inet.tcp().listen(HTTP_SERVE_PORT);
-  printf("Start TCP Listen \n");
+  using namespace net::tcp;
 
-  server.on_connect(
-      [](net::tcp::Connection_ptr conn) {
-        printf("<Service> @on_connect: Connection %s successfully established.\n",
-               conn->remote().to_string().c_str());
-        // read async with a buffer size of 1024 bytes
-        // define what to do when data is read
-        conn->on_read(1024,
-        [conn](auto buf) {
-          printf("<Service> @on_read: %lu bytes received.\n", buf->size());
-          try {
-            const std::string data((const char*) buf->data(), buf->size());            // try to parse the request
-            http::Request req{data};
+  printf("start tcp test \n");
 
-            // handle the request, getting a matching response
-            auto res = handle_request(req);
+  blob = net::tcp::construct_buffer(SIZE, '!');
+  auto& tcp = inet.tcp();
+  tcp.set_DACK(dack); // default
+  tcp.set_MSL(std::chrono::seconds(3));
 
-            printf("<Service> Responding with %u %s.\n",
-                    res.status_code(), http::code_description(res.status_code()).data());
+  tcp.set_window_size(winsize, wscale);
+  tcp.set_timestamps(timestamps);
+  tcp.set_SACK(SACK);
 
-            conn->write(res);
-          } catch (const std::exception &e) {
-            printf("<Service> Unable to parse request:\n%s\n", e.what());
-          }
-        });
-        conn->on_write([](size_t written) {
-          printf("<Service> @on_write: %lu bytes written.\n", written);
-        });
-      });
+  tcp.listen(port_send).on_connect([](Connection_ptr conn)
+  {
+    printf("%s connected. Sending file %u KB\n", conn->remote().to_string().c_str(), SIZE/(1024));
+
+    conn->on_disconnect([] (Connection_ptr self, Connection::Disconnect)
+    {
+      if(!self->is_closing())
+        self->close();
+    });
+    conn->on_write([](size_t n)
+    {
+      recv(n);
+    });
+
+    if (! keep_last) {
+      conn->write(blob);
+    } else {
+      for (auto b : filerino)
+        conn->write(b);
+    }
+    conn->close();
+  });
+
+  tcp.listen(port_recv).on_connect([](Connection_ptr conn)
+  {
+    printf("%s connected. ", conn->remote().to_string().c_str());
+    filerino.reset();
+
+    conn->on_close([]
+    {
+
+    });
+    conn->on_disconnect([] (net::tcp::Connection_ptr self,
+                            net::tcp::Connection::Disconnect reason)
+    {
+      (void) reason;
+      if(const auto bytes_sacked = self->bytes_sacked(); bytes_sacked)
+        printf("SACK: %zu bytes (%zu kB)\n", bytes_sacked, bytes_sacked/(1024));
+
+      if(!self->is_closing())
+        self->close();
+
+    });
+    conn->on_read(SIZE, [] (buffer_t buf)
+    {
+      printf("on read\n");
+      recv(buf->size());
+      if (UNLIKELY(keep_last)) {
+        filerino.append(buf);
+      }
+    });
+  });
 }
 
 void Service::start() {
+  printf("Booted at monotonic_us=%ld \n", bv_get_time());
 
   fs::memdisk().init_fs(
       [](auto err, auto &) {
@@ -170,7 +247,8 @@ void Service::start() {
   inet.network_config({192, 168, 0, 196}, {255, 255, 255, 0}, {192, 168, 0, 1});
 
   // udp_test(inet);
-  http_test(inet);
+  tcp_test(inet);
+  // http_test(inet);
 
   printf("*** Basic demo service started ***\n");
 }

@@ -6,10 +6,15 @@ include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake OPTIONAL RESULT_VARIABL
 conan_basic_setup()
 include(os)
 
-os_add_executable(hello "Hello world - OS included" main.cpp start.c)
+os_add_executable(hello "Hello world - OS included" main.cpp)
 # os_add_drivers(hello virtionet vmxnet3 boot_logger)
 os_add_plugins(hello vfs)
 os_add_drivers(hello bvnet)
 # os_add_drivers(hello bvblock)
 os_add_stdout(hello default_stdout)
 os_diskbuilder(hello disk1)
+
+# start up time
+# os_add_executable(hello "Eval1 - OS included" eval1.cpp)
+# os_add_stdout(hello default_stdout)
+# os_add_drivers(hello bvnet)
