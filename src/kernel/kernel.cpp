@@ -73,7 +73,7 @@ void os::shutdown() noexcept
 void kernel::post_start()
 {
   // Enable timestamps (if present)
-  printf("kernel:: post start");
+  MYINFO("kernel:: post start");
   kernel::state().timestamps_ready = true;
 
 #ifndef PLATFORM_x86_bitvisor
@@ -117,11 +117,11 @@ void kernel::post_start()
 
   // begin service start
   FILLINE('=');
-  printf(" IncludeOS %s (%s / %u-bit)\n",
+  MYINFO(" IncludeOS %s (%s / %u-bit)\n",
          os::version(), os::arch(),
          static_cast<unsigned>(sizeof(uintptr_t)) * 8);
-  printf(" +--> Running [ %s ]\n", Service::name());
-  printf("with editable!\n");
+  MYINFO(" +--> Running [ %s ]\n", Service::name());
+  MYINFO("with editable!\n");
   FILLINE('~');
 
   // if we have disabled important checks, its unsafe for production

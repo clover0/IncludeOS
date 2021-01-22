@@ -4,8 +4,9 @@ cmake_minimum_required(VERSION 3.6.0)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector")
 
-add_definitions(-DKERN_DEBUG)
-add_definitions(-DDEBUG)
+# add_definitions(-DKERN_DEBUG)
+# add_definitions(-DDEBUG)
+add_definitions(-DNO_INFO)
 
 project (includeos C CXX)
 

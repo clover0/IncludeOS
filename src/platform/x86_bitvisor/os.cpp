@@ -31,8 +31,11 @@ extern kernel::ctor_t __driver_ctors_end;
 int ctnr_num = -1;
 static unsigned long long count = 0;
 
+#ifdef DO_MYINFO
 #define MYINFO(X,...) INFO("Kernel", X, ##__VA_ARGS__)
-
+#else
+#define MYINFO(X,...)
+#endif
 #ifdef ENABLE_PROFILERS
 #include <profile>
 #define PROFILE(name)  ScopedProfiler __CONCAT(sp, __COUNTER__){name};
@@ -64,14 +67,13 @@ void kernel::start()
   if(os_default_stdout) {
     os::add_stdout(&kernel::default_stdout);
   }
-  kprintf("kernel::start\n");
-  kprintf("hello unikernle! in kernel::start\n");
+  MYINFO("kernel::start\n");
 
-  kprintf("Global stdout constructors");
+  MYINFO("Global stdout constructors");
   kernel::run_ctors(&__stdout_ctors_start, &__stdout_ctors_end);
 
   // // Call global ctors
-  kprintf("Global kernel constructors\n");
+  MYINFO("Global kernel constructors\n");
   kernel::run_ctors(&__init_array_start, &__init_array_end);
 
   // PROFILE("");
@@ -79,12 +81,12 @@ void kernel::start()
   // CAPTION("#include<os> // Literally");
 
   void* esp = get_cpu_esp();
-  kprintf("Stack: %p\n", esp);
+  MYINFO("Stack: %p\n", esp);
 
   PROFILE("Memory map");
   // Assign memory ranges used by the kernel
   auto& memmap = os::mem::vmmap();
-  kprintf("Assigning fixed memory ranges (Memory map)\n");
+  MYINFO("Assigning fixed memory ranges (Memory map)\n");
   // memmap.assign_range({0x6000, 0x8fff, "Statman"});
   memmap.assign_range({0xA000, 0x9fbff, "Stack"});
   memmap.assign_range({(uintptr_t)&_LOAD_START_, (uintptr_t)&_end,
@@ -101,20 +103,18 @@ void kernel::start()
   // memmap.assign_range({kernel::heap_begin(), heap_range_max_,
         // "Dynamic memory", kernel::heap_usage });
 
-  kprintf("Printing memory map");
+  MYINFO("Printing memory map");
   for (const auto &i : memmap)
-    kprintf("* %s",i.second.to_string().c_str());
+    MYINFO("* %s",i.second.to_string().c_str());
 
   __platform_init();
 
-  // MYINFO("Booted at monotonic_ns=%ld walltime_ns=%ld",
-  //        bitvisor_clock_monotonic(), bitvisor_clock_wall());
-  kprintf("run ctors driver\n");
+  MYINFO("run ctors driver\n");
   kernel::run_ctors(&__driver_ctors_start, &__driver_ctors_end);
 
   BitVisor_manager::init();
 
-  kprintf("timer init \n");
+  MYINFO("timer init \n");
   // // We don't need a start or stop function in bitvisor.
   Timers::init(
     // timer start function
@@ -127,7 +127,7 @@ void kernel::start()
 
 static inline void event_loop_inner()
 {
-  int res = 0;
+  // int res = 0;
   auto nxt = Timers::next();
   if (nxt == std::chrono::nanoseconds(0))
   {

@@ -4,10 +4,14 @@
 #include <kprint>
 #include <vector>
 
-// extern "C" {
-// これどうにかしたい
 #include "../../../bitvisor/bitvisor.hpp"
-// }
+
+#define DO_INFO
+#ifdef DO_INFO
+#define info(X,...) INFO("Kernel_start", X, ##__VA_ARGS__)
+#else
+#define info(X,...)
+#endif
 
 extern "C" {
 void __init_sanity_checks();
@@ -32,12 +36,10 @@ static uintptr_t free_mem_begin;
 struct alignas(4096) page_t {
   char buffer[4096];
 };
-static std::array<page_t, 1024> machine_pool;
-uint32_t __multiboot_addr = 0;
+static std::array<page_t, 1024 * 5> machine_pool; // 20MB heap
 extern "C" void pre_initialize_tls();
 extern int ttyout;
 extern int ctnr_num;
-static std::vector<int> v;
 void kernel_start();
 
 extern "C" int bv_main_start() {
@@ -68,7 +70,7 @@ extern "C" int bv_main_start() {
 
   // setup container id
   num = bv_msgsendint(ukld, 5); // 5 is to get container id
-  printf("container %d start\n", num);
+  info("container %d start\n", num);
   ctnr_num = num;
 
   // pre_initialize_tls();
@@ -87,7 +89,7 @@ void kernel_start() {
   // const size_t len = _move_symbols(free_mem_begin);
   // free_mem_begin += len;
   // mem_size -= len;
-  printf("move symbols\n");
+  // info("move symbols\n");
 
   // Initialize .bss
   extern char _BSS_START_, _BSS_END_;
@@ -96,21 +98,24 @@ void kernel_start() {
   // Ze machine
   // __machine = os::Machine::create((void*)free_mem_begin, mem_size);
   __machine = os::Machine::create(machine_pool.data(), sizeof(machine_pool));
-  printf("machine create\n");
+  // info("machine create\n");
 
   _init_elf_parser();
 
   // Begin portable HAL initialization
   __machine->init();
   // kernel::init_heap((uintptr_t)free_mem_begin, (uintptr_t)free_mem_begin + mem_size);
-  printf("machine init\n");
-
-
+  // info("machine init\n");
 
   // Initialize system calls
   _init_syscalls();
 
-  printf("init syscall\n");
+  // info("init syscall\n");
 
   x86::init_libc((uint32_t)(uintptr_t)temp_cmdline, 0);
+}
+
+extern "C" int _start() {
+  bv_main_start();
+  return 0;
 }
