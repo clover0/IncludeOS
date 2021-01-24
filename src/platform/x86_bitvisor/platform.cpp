@@ -12,12 +12,12 @@ void __arch_poweroff()
 // returns wall clock time in nanoseconds since the UNIX epoch
 uint64_t __arch_system_time() noexcept
 {
-  return bv_get_time();
+  return bv_get_time() * 1000;
 }
 
 timespec __arch_wall_clock() noexcept
 {
-  const uint64_t stamp = bv_get_time();
+  const uint64_t stamp = bv_get_time() * 1000;
   timespec result;
   result.tv_sec = stamp / 1000000000ul;
   result.tv_nsec = stamp % 1000000000ul;
