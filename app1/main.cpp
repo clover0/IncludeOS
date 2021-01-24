@@ -126,19 +126,43 @@ void send_cb() {
 void send_udp_data(net::udp::Socket &client, net::Inet &inet) {
   // const net::Addr destip = net::Addr(192,168,0,181);
   const net::Addr destip = net::Addr(172, 16, 189, 1);
+  unsigned int start_time= RTC::nanos_now();
   for (size_t i = 0; i < PACKETS_PER_INTERVAL; i++) {
     const char c = 'A' + (i % 26);
     std::string buff(SEND_BUF_LEN, c);
     // client.sendto(inet.gateway(), NCAT_RECEIVE_PORT, buff.data(), buff.size(), send_cb);
     client.sendto(destip, NCAT_RECEIVE_PORT, buff.data(), buff.size(), send_cb);
-    printf("send UDP (%c) %d \n", c, i);
   }
+  printf("send udp data finished at %ud(%d times)\n", RTC::nanos_now() - start_time, PACKETS_PER_INTERVAL);
 }
 
-void udp_test(net::Inet &inet) {
+void udp_client_test(net::Inet &inet) {
   auto &udp = inet.udp();
   auto &client = udp.bind(15000);
   send_udp_data(client, inet);
+}
+
+static bool udp_server_test_first = true;
+static unsigned long udp_server_test_start_time = 0;
+
+void udp_server_test(net::Inet &inet) {
+  auto &udp = inet.udp();
+  auto &server = udp.bind(15001);
+
+  printf("Running as Server. Waiting for data...\n");
+  server.on_read(
+      []([[maybe_unused]] auto addr,
+         [[maybe_unused]] auto port,
+         const char *buf, int len) {
+        auto data = std::string(buf, len);
+        printf("Received data len=%d\n", len);
+        if (udp_server_test_first) {
+          udp_server_test_start_time = RTC::nanos_now();
+          printf("start at %lu\n", udp_server_test_start_time);
+          udp_server_test_first = false;
+        }
+        printf("time: %lu\n", RTC::nanos_now());
+      });
 }
 
 void http_test(net::Inet &inet) {
@@ -184,18 +208,20 @@ void tcp_test(net::Inet &inet) {
   tcp.listen(port_send).on_connect([](Connection_ptr conn)
   {
     printf("%s connected. Sending file %u KB\n", conn->remote().to_string().c_str(), SIZE/(1024));
-    start_time = bv_get_time();
+    start_time = RTC::nanos_now();
 
     conn->on_disconnect([] (Connection_ptr self, Connection::Disconnect)
     {
       if(!self->is_closing())
         self->close();
-      printf("tcp send result time=%d[ms] \n", (bv_get_time()-start_time) / 1000);
+      printf("tcp send result time=%d[ms] \n", (RTC::nanos_now()-start_time) / 1000);
+      printf("======================================\n");
     });
     conn->on_write([](size_t n)
     {
       recv(n);
-      printf("tcp send write result time=%d[ms] \n", (bv_get_time()-start_time)/1000);
+      printf("tcp send write result time=%d[ms] \n", (RTC::nanos_now()-start_time)/1000);
+      printf("======================================\n");
     });
 
     if (! keep_last) {
@@ -211,7 +237,7 @@ void tcp_test(net::Inet &inet) {
   {
     printf("%s connected. \n", conn->remote().to_string().c_str());
     filerino.reset();
-    start_time = bv_get_time();
+    start_time = RTC::nanos_now();
 
     conn->on_close([]
     {
@@ -226,7 +252,8 @@ void tcp_test(net::Inet &inet) {
 
       if(!self->is_closing())
         self->close();
-      printf("tcp recv result time=%d[ms] \n", (bv_get_time()-start_time)/1000);
+      printf("tcp recv result time=%d[ms] \n", (RTC::nanos_now()-start_time)/1000);
+      printf("======================================\n");
     });
     conn->on_read(SIZE, [] (buffer_t buf)
     {
@@ -234,13 +261,14 @@ void tcp_test(net::Inet &inet) {
       if (UNLIKELY(keep_last)) {
         filerino.append(buf);
       }
-      printf("tcp recv read time=%d[ms] \n", (bv_get_time()-start_time)/1000);
+      printf("tcp recv read time=%d[ms] \n", (RTC::nanos_now()-start_time)/1000);
+      printf("======================================\n");
     });
   });
 }
 
 void Service::start() {
-  printf("Booted at monotonic_us=%ld \n", bv_get_time());
+  printf("Booted at monotonic_us=%ld \n", RTC::nanos_now());
 
   fs::memdisk().init_fs(
       [](auto err, auto &) {
@@ -251,8 +279,8 @@ void Service::start() {
   // inet.network_config({172, 16, 189, 132}, {255, 255, 255, 0}, {172, 16, 189, 1});
   inet.network_config({192, 168, 0, 196}, {255, 255, 255, 0}, {192, 168, 0, 1});
 
-  // udp_test(inet);
-  tcp_test(inet);
+  udp_server_test(inet);
+  // tcp_test(inet);
   // http_test(inet);
 
   printf("*** Basic demo service started ***\n");
