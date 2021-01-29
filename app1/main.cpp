@@ -14,10 +14,11 @@
 
 #include "../bitvisor/bitvisor.hpp"
 
-#define SEND_BUF_LEN 100
+#define SEND_BUF_LEN 32768 // 32KB
+// #define SEND_BUF_LEN 100
 #define SERVER_TEST_LEN 10
-#define PACKETS_PER_INTERVAL 2
-#define NCAT_RECEIVE_PORT 9000
+#define PACKETS_PER_INTERVAL 10
+#define NCAT_RECEIVE_PORT 12000
 #define HTTP_SERVE_PORT 80
 
 uint64_t data_len{0};
@@ -124,8 +125,8 @@ void send_cb() {
 }
 
 void send_udp_data(net::udp::Socket &client, net::Inet &inet) {
-  // const net::Addr destip = net::Addr(192,168,0,181);
-  const net::Addr destip = net::Addr(172, 16, 189, 1);
+  const net::Addr destip = net::Addr(192,168,0,181);
+  // const net::Addr destip = net::Addr(172, 16, 189, 1);
   unsigned int start_time= RTC::nanos_now();
   for (size_t i = 0; i < PACKETS_PER_INTERVAL; i++) {
     const char c = 'A' + (i % 26);
@@ -133,17 +134,19 @@ void send_udp_data(net::udp::Socket &client, net::Inet &inet) {
     // client.sendto(inet.gateway(), NCAT_RECEIVE_PORT, buff.data(), buff.size(), send_cb);
     client.sendto(destip, NCAT_RECEIVE_PORT, buff.data(), buff.size(), send_cb);
   }
-  printf("send udp data finished at %ud(%d times)\n", RTC::nanos_now() - start_time, PACKETS_PER_INTERVAL);
+  printf("======================================\n");
+  printf("send udp data finished at %luus(%d times)\n", (RTC::nanos_now() - start_time) / 1000, PACKETS_PER_INTERVAL);
 }
 
 void udp_client_test(net::Inet &inet) {
   auto &udp = inet.udp();
-  auto &client = udp.bind(15000);
+  auto &client = udp.bind(16000);
   send_udp_data(client, inet);
 }
 
 static bool udp_server_test_first = true;
 static unsigned long udp_server_test_start_time = 0;
+static unsigned long udp_server_recv_size = 0;
 
 void udp_server_test(net::Inet &inet) {
   auto &udp = inet.udp();
@@ -155,13 +158,20 @@ void udp_server_test(net::Inet &inet) {
          [[maybe_unused]] auto port,
          const char *buf, int len) {
         auto data = std::string(buf, len);
+        udp_server_recv_size += len;
         printf("Received data len=%d\n", len);
         if (udp_server_test_first) {
           udp_server_test_start_time = RTC::nanos_now();
           printf("start at %lu\n", udp_server_test_start_time);
+          printf("======================================\n");
           udp_server_test_first = false;
         }
+        if(udp_server_recv_size >= 16 * 1024) {
+          printf("time 32KB: %luus\n", (RTC::nanos_now() - udp_server_test_start_time) / 1000);
+          printf("======================================\n");
+        }
         printf("time: %lu\n", RTC::nanos_now());
+        printf("======================================\n");
       });
 }
 
@@ -191,6 +201,7 @@ void recv(size_t len)
 }
 
 static unsigned long start_time = 0;
+
 void tcp_test(net::Inet &inet) {
   using namespace net::tcp;
 
@@ -279,9 +290,10 @@ void Service::start() {
   // inet.network_config({172, 16, 189, 132}, {255, 255, 255, 0}, {172, 16, 189, 1});
   inet.network_config({192, 168, 0, 196}, {255, 255, 255, 0}, {192, 168, 0, 1});
 
-  udp_server_test(inet);
+  // udp_server_test(inet);
+  // udp_client_test(inet);
   // tcp_test(inet);
-  // http_test(inet);
+  http_test(inet);
 
   printf("*** Basic demo service started ***\n");
 }
