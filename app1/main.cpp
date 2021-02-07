@@ -9,7 +9,6 @@
 #include <os>
 #include <timers>
 #include <memdisk>
-
 #include <hal/machine.hpp>
 
 #include "../bitvisor/bitvisor.hpp"
@@ -62,7 +61,7 @@ std::string HTML_RESPONSE() {
          << "<title>IncludeOS Demo Service</title></head><body>"
          << "<h1 style='color: #" << std::hex << ((color >> 8) | 0x020202)
          << "; font-family: \"Arial\", sans-serif'>"
-         << "Include<span style='font-weight: lighter'>OS</span></h1>"
+         << "Demo Page<span style='font-weight: lighter'>1</span></h1>"
          << "<h2>The C++ Unikernel</h2>"
          << "<p>You have successfully booted an IncludeOS TCP service with simple http. "
          << "For a more sophisticated example, take a look at "
@@ -73,18 +72,20 @@ std::string HTML_RESPONSE() {
 }
 
 void root_handler(http::Request_ptr req, http::Response_writer_ptr writer) {
-  printf("<service>handle request\n");
+  // printf("[WebServer]handle request=======\n");
   writer->header().set_field(http::header::Server, "IncludeOS/0.10");
 
   // GET /
   if (req->method() == http::GET && req->uri().to_string() == "/") {
     writer->write(HTML_RESPONSE());
+    printf("[WebServer]GET request (path=/)\n");
     writer->header().set_field(http::header::Content_Type, "text/html; charset=UTF-8");
   } else if (req->method() == http::GET && req->uri().to_string() == "/test1") {
     // GET /test1 file
     auto& filesys = fs::memdisk().fs();
     auto buf = filesys.read_file("/static/test1.html");
     writer->write(buf.to_string());
+    printf("[WebServer]GET request (path=/test1)\n");
     writer->header().set_field(http::header::Content_Type, "text/html; charset=UTF-8");
   } else {
     // Generate 404 response
@@ -178,6 +179,7 @@ void udp_server_test(net::Inet &inet) {
 void http_test(net::Inet &inet) {
   using namespace http;
 
+  printf("[WebServer]Starting server\n");
   server = std::make_unique<Server>(inet.tcp());
   server->on_request(root_handler);
   server->listen(HTTP_SERVE_PORT);
@@ -279,7 +281,7 @@ void tcp_test(net::Inet &inet) {
 }
 
 void Service::start() {
-  printf("Booted at monotonic_us=%ld \n", RTC::nanos_now());
+  // printf("Booted at monotonic_us=%ld \n", RTC::nanos_now());
 
   fs::memdisk().init_fs(
       [](auto err, auto &) {
@@ -295,5 +297,5 @@ void Service::start() {
   // tcp_test(inet);
   http_test(inet);
 
-  printf("*** Basic demo service started ***\n");
+  printf("*** service started ***\n");
 }
