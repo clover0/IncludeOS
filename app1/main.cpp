@@ -13,7 +13,8 @@
 
 #include "../bitvisor/bitvisor.hpp"
 
-#define SEND_BUF_LEN 32768 // 32KB
+// #define SEND_BUF_LEN 32768 // 32KB
+#define SEND_BUF_LEN 1024
 // #define SEND_BUF_LEN 100
 #define SERVER_TEST_LEN 10
 #define PACKETS_PER_INTERVAL 10
@@ -98,53 +99,61 @@ void send_cb() {
   data_len += SEND_BUF_LEN;
 }
 
-void send_udp_data(net::udp::Socket &client, net::Inet &inet) {
+void send_udp_data(net::udp::Socket &client, net::Inet &inet, int bufflen, int interval) {
   const net::Addr destip = net::Addr(192,168,0,181);
   // const net::Addr destip = net::Addr(172, 16, 189, 1);
   unsigned int start_time= RTC::nanos_now();
-  for (size_t i = 0; i < PACKETS_PER_INTERVAL; i++) {
+  for (size_t i = 0; i < interval; i++) {
     const char c = 'A' + (i % 26);
-    std::string buff(SEND_BUF_LEN, c);
+    std::string buff(bufflen, c);
     // client.sendto(inet.gateway(), NCAT_RECEIVE_PORT, buff.data(), buff.size(), send_cb);
     client.sendto(destip, NCAT_RECEIVE_PORT, buff.data(), buff.size(), send_cb);
   }
   printf("======================================\n");
-  printf("send udp data finished at %luus(%d times)\n", (RTC::nanos_now() - start_time) / 1000, PACKETS_PER_INTERVAL);
+  printf("send udp data finished at %luus()\n", (RTC::nanos_now() - start_time) / 1000);
 }
 
 void udp_client_test(net::Inet &inet) {
   auto &udp = inet.udp();
   auto &client = udp.bind(16000);
-  send_udp_data(client, inet);
+  // 32KB
+  printf("32KB======================================\n");
+  send_udp_data(client, inet, 1024, 32);
+  // // 512KB
+  printf("512KB======================================\n");
+  send_udp_data(client, inet, 1024, 512);
+  // 1MB
+  printf("1MB======================================\n");
+  send_udp_data(client, inet, 1024, 1024);
 }
 
 static bool udp_server_test_first = true;
 static unsigned long udp_server_test_start_time = 0;
 static unsigned long udp_server_recv_size = 0;
 
-void udp_server_test(net::Inet &inet) {
+void udp_server_test(net::Inet &inet, int recv_size) {
   auto &udp = inet.udp();
   auto &server = udp.bind(15001);
 
   printf("Running as Server. Waiting for data...\n");
   server.on_read(
-      []([[maybe_unused]] auto addr,
+      [recv_size]([[maybe_unused]] auto addr,
          [[maybe_unused]] auto port,
          const char *buf, int len) {
         auto data = std::string(buf, len);
-        udp_server_recv_size += len;
-        printf("Received data len=%d\n", len);
+        udp_server_recv_size += data.size();
+        // printf("Received data len=%d\n", len);
         if (udp_server_test_first) {
           udp_server_test_start_time = RTC::nanos_now();
-          printf("start at %lu\n", udp_server_test_start_time);
-          printf("======================================\n");
+          // printf("start at %lu\n", udp_server_test_start_time);
+          // printf("======================================\n");
           udp_server_test_first = false;
         }
-        if(udp_server_recv_size >= 16 * 1024) {
-          printf("time 32KB: %luus\n", (RTC::nanos_now() - udp_server_test_start_time) / 1000);
+        if(udp_server_recv_size >= recv_size - 10) { // not worked...
           printf("======================================\n");
+          printf("finish time : %luus\n",(RTC::nanos_now() - udp_server_test_start_time) / 1000);
         }
-        printf("time: %lu\n", RTC::nanos_now());
+        printf("time: %lu\n", (RTC::nanos_now() - udp_server_test_start_time) / 1000);
         printf("======================================\n");
       });
 }
@@ -158,7 +167,7 @@ void http_test(net::Inet &inet) {
   server->listen(HTTP_SERVE_PORT);
 }
 
-static const uint32_t  SIZE = 1024*32;
+// static const uint32_t  SIZE = 1024*32;
 bool      timestamps{true};
 bool      SACK{true};
 std::chrono::milliseconds dack{40};
@@ -177,12 +186,12 @@ void recv(size_t len)
 
 static unsigned long start_time = 0;
 
-void tcp_test(net::Inet &inet) {
+void tcp_test(net::Inet &inet, const uint32_t file_size) {
   using namespace net::tcp;
 
   printf("start tcp test \n");
 
-  blob = net::tcp::construct_buffer(SIZE, '!');
+  blob = net::tcp::construct_buffer(file_size, '!');
   auto& tcp = inet.tcp();
   tcp.set_DACK(dack); // default
   tcp.set_MSL(std::chrono::seconds(3));
@@ -191,22 +200,22 @@ void tcp_test(net::Inet &inet) {
   tcp.set_timestamps(timestamps);
   tcp.set_SACK(SACK);
 
-  tcp.listen(port_send).on_connect([](Connection_ptr conn)
+  tcp.listen(port_send).on_connect([file_size](Connection_ptr conn)
   {
-    printf("%s connected. Sending file %u KB\n", conn->remote().to_string().c_str(), SIZE/(1024));
+    printf("%s connected. Sending file %u KB\n", conn->remote().to_string().c_str(), file_size/(1024));
     start_time = RTC::nanos_now();
 
     conn->on_disconnect([] (Connection_ptr self, Connection::Disconnect)
     {
       if(!self->is_closing())
         self->close();
-      printf("tcp send result time=%d[ms] \n", (RTC::nanos_now()-start_time) / 1000);
+      printf("tcp send result time=%d[us] \n", (RTC::nanos_now()-start_time) / 1000);
       printf("======================================\n");
     });
     conn->on_write([](size_t n)
     {
       recv(n);
-      printf("tcp send write result time=%d[ms] \n", (RTC::nanos_now()-start_time)/1000);
+      printf("tcp send write result time=%d[us] \n", (RTC::nanos_now()-start_time)/1000);
       printf("======================================\n");
     });
 
@@ -219,7 +228,7 @@ void tcp_test(net::Inet &inet) {
     conn->close();
   });
 
-  tcp.listen(port_recv).on_connect([](Connection_ptr conn)
+  tcp.listen(port_recv).on_connect([file_size](Connection_ptr conn)
   {
     printf("%s connected. \n", conn->remote().to_string().c_str());
     filerino.reset();
@@ -235,20 +244,20 @@ void tcp_test(net::Inet &inet) {
       (void) reason;
       // if(const auto bytes_sacked = self->bytes_sacked(); bytes_sacked)
         // printf("SACK: %zu bytes (%zu kB)\n", bytes_sacked, bytes_sacked/(1024));
+      printf("tcp recv result time=%d[ms] \n", (RTC::nanos_now()-start_time)/1000);
+      printf("======================================\n");
 
       if(!self->is_closing())
         self->close();
-      printf("tcp recv result time=%d[ms] \n", (RTC::nanos_now()-start_time)/1000);
-      printf("======================================\n");
     });
-    conn->on_read(SIZE, [] (buffer_t buf)
+    conn->on_read(file_size, [] (buffer_t buf)
     {
       recv(buf->size());
       if (UNLIKELY(keep_last)) {
         filerino.append(buf);
       }
-      printf("tcp recv read time=%d[ms] \n", (RTC::nanos_now()-start_time)/1000);
-      printf("======================================\n");
+      // printf("tcp recv read time=%d[ms] \n", (RTC::nanos_now()-start_time)/1000);
+      // printf("======================================\n");
     });
   });
 }
@@ -265,10 +274,10 @@ void Service::start() {
   // inet.network_config({172, 16, 189, 132}, {255, 255, 255, 0}, {172, 16, 189, 1});
   inet.network_config({192, 168, 0, 196}, {255, 255, 255, 0}, {192, 168, 0, 1});
 
-  // udp_server_test(inet);
+  udp_server_test(inet, 1024 * 1024);
   // udp_client_test(inet);
-  // tcp_test(inet);
-  http_test(inet);
+  // tcp_test(inet, 1024 * 1024);
+  // http_test(inet);
 
   printf("*** service started ***\n");
 }
