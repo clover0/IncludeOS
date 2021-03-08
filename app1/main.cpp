@@ -274,10 +274,10 @@ void Service::start() {
   // inet.network_config({172, 16, 189, 132}, {255, 255, 255, 0}, {172, 16, 189, 1});
   inet.network_config({192, 168, 0, 196}, {255, 255, 255, 0}, {192, 168, 0, 1});
 
-  udp_server_test(inet, 1024 * 1024);
+  // udp_server_test(inet, 1024 * 1024);
   // udp_client_test(inet);
   // tcp_test(inet, 1024 * 1024);
-  // http_test(inet);
+  http_test(inet);
 
   printf("*** service started ***\n");
 }
