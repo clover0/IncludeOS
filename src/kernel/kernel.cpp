@@ -73,7 +73,6 @@ void os::shutdown() noexcept
 void kernel::post_start()
 {
   // Enable timestamps (if present)
-  MYINFO("kernel:: post start");
   kernel::state().timestamps_ready = true;
 
 #ifndef PLATFORM_x86_bitvisor

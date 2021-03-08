@@ -94,33 +94,6 @@ void root_handler(http::Request_ptr req, http::Response_writer_ptr writer) {
   writer->header().set_field(http::header::Connection, "close");
 }
 
-http::Response handle_request(const http::Request &req) {
-  printf("<Service> Request:\n%s\n", req.to_string().c_str());
-
-  http::Response res;
-
-  auto &header = res.header();
-
-  header.set_field(http::header::Server, "IncludeOS/0.10");
-
-  // GET /
-  if (req.method() == http::GET && req.uri().to_string() == "/") {
-    // add HTML response
-    res.add_body(HTML_RESPONSE());
-
-    // set Content type and length
-    header.set_field(http::header::Content_Type, "text/html; charset=UTF-8");
-    header.set_field(http::header::Content_Length, std::to_string(res.body().size()));
-  } else {
-    // Generate 404 response
-    res.set_status_code(http::Not_Found);
-  }
-
-  header.set_field(http::header::Connection, "close");
-
-  return res;
-}
-
 void send_cb() {
   data_len += SEND_BUF_LEN;
 }

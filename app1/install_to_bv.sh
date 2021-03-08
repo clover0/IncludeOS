@@ -1,7 +1,7 @@
 #! /bin/bash
 
-BASEDIR="~/programs"
+BASEDIR=~/programs
 
 cp hello $BASEDIR/my_bitvisor/process/includeos
 
-echo "done instal includeos with app binary to bitvisor."
+echo "done install includeos with app binary to bitvisor."

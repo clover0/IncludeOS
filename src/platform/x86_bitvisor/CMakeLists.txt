@@ -4,7 +4,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector")
 set(PLATFORM_OBJECTS
   os.cpp
   serial1.cpp
-  start.asm
   platform.cpp
   kernel_start.cpp
   sanity_checks.cpp

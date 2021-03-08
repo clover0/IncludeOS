@@ -196,8 +196,6 @@ extern "C"
 void _init_syscalls()
 {
   // make sure each buffer is zero length so it won't always show up in crashes
-  int i = 0;
-  for (auto& ctx : contexts){
+  for (auto& ctx : contexts)
       ctx.buffer[0] = 0;
-  }
 }
