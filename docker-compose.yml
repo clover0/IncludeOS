@@ -1,0 +1,13 @@
+version: "3"
+services: 
+    builder:
+        build: 
+            context: .
+            dockerfile: Dockerfile
+        working_dir: /service
+        volumes: 
+            - ./:/service
+            - /root/.conan
+        # command: /service/build.sh
+        command: /bin/bash
+        tty: true

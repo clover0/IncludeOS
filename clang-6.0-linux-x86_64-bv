@@ -1,0 +1,21 @@
+[build_requires]
+binutils/2.31@includeos/toolchain
+[settings]
+os=Linux
+os_build=Linux
+arch=x86_64
+arch_build=x86_64
+compiler=clang
+compiler.version=6.0
+compiler.libcxx=libc++
+cppstd=17
+build_type=Release
+[options]
+
+[env]
+CC=clang-6.0
+CXX=clang++-6.0
+CFLAGS=-msse3 -mfpmath=sse -O2 -g -fno-stack-protector
+#CFLAGS=-mno-sse -mno-sse2 -mno-sse3 -O1 -g -fno-stack-protector
+CXXFLAGS=-msse3 -mfpmath=sse -O2 -g -fno-stack-protector
+#CXXFLAGS=-mno-sse -mno-sse2 -mno-sse3 -O1 -g -fno-stack-protector

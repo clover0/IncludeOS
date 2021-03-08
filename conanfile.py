@@ -24,13 +24,15 @@ class IncludeOSConan(ConanFile):
             'nano',
             'solo5-hvt',
             'solo5-spt',
+            'bitvisor',
             'userspace'
         ],
         'smp': [ True, False ]
     }
 
     default_options = {
-        'platform':'default',
+        # 'platform':'default',
+        'platform':'bitvisor',
         'smp': False
     }
 
@@ -105,12 +107,14 @@ class IncludeOSConan(ConanFile):
             'nano' : '{}_nano'.format(self._target_arch()),
             'solo5-hvt' : '{}_solo5-hvt'.format(self._target_arch()),
             'solo5-spt' : '{}_solo5-spt'.format(self._target_arch()),
+            'bitvisor': '{}_bitvisor'.format(self._target_arch()),
             'userspace' : '{}_userspace'.format(self._target_arch())
         }
 
         self.cpp_info.libs=['os','arch','musl_syscalls']
         self.cpp_info.libs.append(platform.get(str(self.options.platform),"NONE"))
-        self.cpp_info.libdirs = [ 'lib', 'platform' ]
+        self.cpp_info.libs.append('{}_bv_binding'.format(self._target_arch()))
+        self.cpp_info.libdirs = [ 'lib', 'platform', 'bitvisor']
 
     def deploy(self):
         self.copy("*",dst="cmake",src="cmake")

@@ -75,6 +75,7 @@ void kernel::post_start()
   // Enable timestamps (if present)
   kernel::state().timestamps_ready = true;
 
+#ifndef PLATFORM_x86_bitvisor
   {
 	PROFILE("LiveUpdate and SystemLog");
     // LiveUpdate needs some initialization, although only if present
@@ -84,6 +85,7 @@ void kernel::post_start()
     // Dependent on the liveupdate location being set
     SystemLog::initialize();
   }
+#endif
 
   // Seed rand with 32 bits from RNG
   srand(rng_extract_uint32());
@@ -114,10 +116,11 @@ void kernel::post_start()
 
   // begin service start
   FILLINE('=');
-  printf(" IncludeOS %s (%s / %u-bit)\n",
+  MYINFO(" IncludeOS %s (%s / %u-bit)\n",
          os::version(), os::arch(),
          static_cast<unsigned>(sizeof(uintptr_t)) * 8);
-  printf(" +--> Running [ %s ]\n", Service::name());
+  MYINFO(" +--> Running [ %s ]\n", Service::name());
+  MYINFO("with editable!\n");
   FILLINE('~');
 
   // if we have disabled important checks, its unsafe for production

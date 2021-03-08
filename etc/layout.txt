@@ -1,4 +1,4 @@
-{% set simple=true%}
+{% set simple=false%}
 
 {% set build_dir='build' %}
 
@@ -18,20 +18,12 @@ api
 
 [libdirs]
 {#This is so that we can find our libraries #}
-{{ build_dir }}/plugins
-{{ build_dir }}/drivers
-{{ build_dir }}/lib
-{{ build_dir }}/platform
+build/plugins
+build/drivers
+build/lib
+build/platform
+build/bitvisor
 
 [resdirs]
 {#This is so that we can find ldscript and search for drivers plugins etc#}
-{{ build_dir }}
-
-{#
-TODO figure out why adding these two fails
-[source_folder]
-.
-
-[build_folder]
-{{ build_dir }}
-#}
+build

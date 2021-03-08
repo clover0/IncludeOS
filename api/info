@@ -3,7 +3,7 @@
 #ifndef API_INFO_HEADER
 #define API_INFO_HEADER
 
-#define LINEWIDTH 80
+#define LINEWIDTH 70
 
 // Informational prints
 #ifndef NO_INFO
@@ -27,6 +27,7 @@
 #define CENTER(TEXT,...)
 #define FILLINE(CHAR)
 #define CHECK(X,...)
+#define CHECKSERT(TEST, TEXT, ...)
 #endif
 
 #endif //< ___API_INFO___

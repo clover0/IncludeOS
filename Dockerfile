@@ -7,16 +7,24 @@ RUN apt-get update && \
     cmake \
     nasm \
     curl \
+    gdb \
+    python3.7 \
+    vim \
+    wget \
     git && \
     rm -rf /var/lib/apt/lists/*
 
 # Install and configure Conan
-ARG conan_version=1_12_3
+ARG conan_version=1_29_2
 RUN curl -Lo conan.deb https://dl.bintray.com/conan/installers/conan-ubuntu-64_$conan_version.deb && \
     dpkg --install conan.deb && \
     rm conan.deb
 RUN conan config install https://github.com/includeos/conan_config.git && \
     conan config set general.default_profile=clang-$clang_version-linux-x86_64
+
+RUN ln -s /usr/bin/python3.7 /usr/bin/python3
+
+# USER 1000
 
 # The files to be built must be hosted in a catalog called /service
 # Default is to install conan dependencies and build

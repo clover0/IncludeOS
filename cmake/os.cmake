@@ -1,5 +1,6 @@
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
+  # set(CMAKE_BUILD_TYPE "Release")
+  set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
 set (CMAKE_CXX_STANDARD 17)
@@ -327,7 +328,8 @@ function(os_add_memdisk TARGET DISK)
     REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
   add_custom_command(
     OUTPUT  memdisk.o
-    COMMAND ${PYTHON3_EXECUTABLE} ${CONAN_RES_DIRS_INCLUDEOS}/tools/memdisk/memdisk.py --file memdisk.asm ${DISK_RELPATH}
+    # COMMAND ${PYTHON3_EXECUTABLE} ${CONAN_RES_DIRS_INCLUDEOS}/tools/memdisk/memdisk.py --file memdisk.asm ${DISK_RELPATH}
+    COMMAND python3 ${CONAN_RES_DIRS_INCLUDEOS}/tools/memdisk/memdisk.py --file memdisk.asm ${DISK_RELPATH}
     COMMAND nasm -f ${CMAKE_ASM_NASM_OBJECT_FORMAT} memdisk.asm -o memdisk.o
     DEPENDS ${DISK}
   )

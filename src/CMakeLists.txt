@@ -1,7 +1,7 @@
 #
 # CMake script for the OS library
 #
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector")
 #TODO restructure this in a different commit based on KJ/CMakeFixes branch
 add_definitions(-DARCH_${ARCH})
 add_definitions(-DARCH="${ARCH}")
@@ -40,6 +40,11 @@ endif()
 if(${PLATFORM} STREQUAL "solo5-hvt")
   message(STATUS "Building for solo5")
   add_definitions(-DPLATFORM_x86_solo5)
+endif()
+
+if(${PLATFORM} STREQUAL "bitvisor")
+  message(STATUS "Building for bitvisor")
+  add_definitions(-DPLATFORM_x86_bitvisor)
 endif()
 
 SET(OBJECTS)
