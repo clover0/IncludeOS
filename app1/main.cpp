@@ -236,13 +236,13 @@ void tcp_test(net::Inet &inet, const uint32_t file_size) {
     {
       if(!self->is_closing())
         self->close();
-      printf("tcp send result time=%d[ms] \n", (RTC::nanos_now()-start_time) / 1000);
+      printf("tcp send result time=%d[us] \n", (RTC::nanos_now()-start_time) / 1000);
       printf("======================================\n");
     });
     conn->on_write([](size_t n)
     {
       recv(n);
-      printf("tcp send write result time=%d[ms] \n", (RTC::nanos_now()-start_time)/1000);
+      printf("tcp send write result time=%d[us] \n", (RTC::nanos_now()-start_time)/1000);
       printf("======================================\n");
     });
 
